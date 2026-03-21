@@ -1,6 +1,7 @@
 package com.wellness.backend.service;
 
 import com.wellness.backend.dto.request.DeactivatePatientRequest;
+import com.wellness.backend.dto.request.PatientListDTO;
 import com.wellness.backend.dto.request.ReactivatePatientRequest;
 import com.wellness.backend.enums.PatientStatus;
 import com.wellness.backend.exception.BusinessException;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PatientService {
@@ -91,4 +93,28 @@ public class PatientService {
             patient.setEmail(request.getEmail());
         return patientRepository.save(patient);
     }
+
+    public List<PatientListDTO> getAllPatientsFiltered(String search, PatientStatus status, String condition) {
+        List<Patient> patients;
+
+        if (search != null && !search.isEmpty()) {
+            patients = patientRepository.findByNameContainingIgnoreCaseOrIdentityDocumentContaining(search, search);
+        } else if (condition != null && !condition.isEmpty()) {
+            patients = patientRepository.findByPrimaryCondition(condition);
+        } else if (status != null) {
+            patients = patientRepository.findByStatus(status);
+        } else {
+            patients = patientRepository.findAll();
+        }
+
+        return patients.stream().map(p -> new PatientListDTO(
+                p.getName(),
+                p.getIdentityDocument(),
+                (p.getClinicalInfo() != null) ? p.getClinicalInfo().getMainCondition() : "Sin asignar",
+                p.getStatus()
+        )).collect(Collectors.toList());
+    }
+
+
+
 }

@@ -59,4 +59,8 @@ public class Patient {
             this.status = PatientStatus.ACTIVO;
     }
 
+    @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL)
+    private ClinicalInfo clinicalInfo;
+
+
 }

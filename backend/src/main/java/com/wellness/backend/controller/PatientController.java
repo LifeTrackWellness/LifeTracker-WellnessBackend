@@ -1,7 +1,9 @@
 package com.wellness.backend.controller;
 
 import com.wellness.backend.dto.request.DeactivatePatientRequest;
+import com.wellness.backend.dto.request.PatientListDTO;
 import com.wellness.backend.dto.request.ReactivatePatientRequest;
+import com.wellness.backend.enums.PatientStatus;
 import com.wellness.backend.model.Patient;
 import com.wellness.backend.service.PatientService;
 import jakarta.validation.Valid;
@@ -65,5 +67,13 @@ public class PatientController {
     @PatchMapping("/{id}/reactivate")
     public ResponseEntity<Patient> reactivate(@PathVariable Long id, @RequestBody ReactivatePatientRequest request) {
         return ResponseEntity.ok(patientService.reactivatePatient(id, request));
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<PatientListDTO>> listPatients(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) PatientStatus status,
+            @RequestParam(required = false) String condition) {
+        return ResponseEntity.ok(patientService.getAllPatientsFiltered(search, status, condition));
     }
 }
