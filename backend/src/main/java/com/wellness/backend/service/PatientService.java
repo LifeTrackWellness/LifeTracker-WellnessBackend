@@ -113,6 +113,8 @@ public class PatientService {
                 (p.getClinicalInfo() != null) ? p.getClinicalInfo().getMainCondition() : "Sin asignar",
                 p.getStatus()
         )).collect(Collectors.toList());
+
+
     }
 
 

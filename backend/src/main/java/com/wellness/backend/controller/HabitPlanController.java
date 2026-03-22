@@ -49,6 +49,16 @@ public class HabitPlanController {
         return ResponseEntity.ok(habitPlanService.updatePlan(planId, request));
     }
 
+    @PutMapping("/{planId}/tasks/{taskId}")
+    public ResponseEntity<HabitTask> updateTask(
+            @PathVariable Long patientId,
+            @PathVariable Long planId,
+            @PathVariable Long taskId,
+            @Valid @RequestBody HabitTaskRequest request) {
+        return ResponseEntity.ok(habitPlanService.updateTask(taskId, request));
+    }
+
+
     @PatchMapping("/{planId}/deactivate")
     public ResponseEntity<HabitPlan> deactivatePlan(@PathVariable Long patientId, @PathVariable Long planId) {
         return ResponseEntity.ok(habitPlanService.deactivatePlan(planId));
@@ -66,4 +76,6 @@ public class HabitPlanController {
         habitPlanService.deleteTask(taskId);
         return ResponseEntity.noContent().build();
     }
+
+
 }

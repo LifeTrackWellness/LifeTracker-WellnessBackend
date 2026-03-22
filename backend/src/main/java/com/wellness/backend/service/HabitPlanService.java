@@ -59,6 +59,13 @@ public class HabitPlanService {
                 task.setHabitPlan(plan);
                 task.setName(taskRequest.getName());
                 task.setDescription(taskRequest.getDescription());
+
+                // HU10//
+                task.setPriority(taskRequest.getPriority());
+                task.setMandatory(taskRequest.isMandatory());
+                task.setWeeklyGoal(taskRequest.getWeeklyGoal());
+                task.setSpecificDays(taskRequest.getSpecificDays());
+
                 habitTaskRepository.save(task);
             }
         }
@@ -114,10 +121,18 @@ public class HabitPlanService {
     public HabitTask addTask(Long planId, HabitTaskRequest request) {
         HabitPlan plan = habitPlanRepository.findById(planId)
                 .orElseThrow(() -> new ResourceNotFoundException("Plan", planId));
+
         HabitTask task = new HabitTask();
         task.setHabitPlan(plan);
         task.setName(request.getName());
         task.setDescription(request.getDescription());
+
+        // -DE LA HU-10 ---
+        task.setPriority(request.getPriority());        // Criterio: Prioridad
+        task.setMandatory(request.isMandatory());       // Criterio: Obligatoriedad
+        task.setWeeklyGoal(request.getWeeklyGoal());    // Criterio: Objetivo semanal
+        task.setSpecificDays(request.getSpecificDays());// Criterio: Frecuencia
+
         return habitTaskRepository.save(task);
     }
 
@@ -126,5 +141,20 @@ public class HabitPlanService {
         HabitTask task = habitTaskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarea", taskId));
         habitTaskRepository.delete(task);
+    }
+    @Transactional
+    public HabitTask updateTask(Long taskId, HabitTaskRequest request) {
+        HabitTask task = habitTaskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarea", taskId));
+
+        // Solo se permite editar si el plan está activo
+        task.setName(request.getName());
+        task.setDescription(request.getDescription());
+        task.setPriority(request.getPriority());
+        task.setMandatory(request.isMandatory());
+        task.setWeeklyGoal(request.getWeeklyGoal());
+        task.setSpecificDays(request.getSpecificDays());
+
+        return habitTaskRepository.save(task);
     }
 }

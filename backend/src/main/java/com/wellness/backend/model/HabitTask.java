@@ -1,40 +1,37 @@
 package com.wellness.backend.model;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.Data;
+import java.util.List;
 
 @Entity
 @Table(name = "habit_tasks")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class HabitTask {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "habit_plan_id", nullable = false)
-    private HabitPlan habitPlan;
-
-    @Column(nullable = false)
     private String name;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    // Criterio: Prioridad (alta/media/baja)
+    private String priority;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
+    // Criterio: Obligatoria u opcional
+    private boolean mandatory;
 
+    // Criterio: Objetivo semanal (ej: 4 veces)
+    private Integer weeklyGoal;
+
+    // Criterio: Frecuencia (días específicos)
+    @ElementCollection
+    private List<String> specificDays;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plan_id")
+    @JsonIgnore // Evita errores de recursión infinita
+    private HabitPlan habitPlan;
 }
