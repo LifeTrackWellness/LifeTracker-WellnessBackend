@@ -24,5 +24,11 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  sql:
+    init:
+      mode: always
+      defer-datasource-initialization: true
+
+
 server:
   port: 8080
