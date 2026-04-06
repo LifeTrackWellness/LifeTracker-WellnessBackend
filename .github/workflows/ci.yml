@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v3
 
       - name: Configurar Java 17
@@ -22,4 +22,4 @@ jobs:
 
       - name: Compilar con Maven
         run: mvn clean package -DskipTests
-        working-directory: backend
+        working-directory: backend/backend
