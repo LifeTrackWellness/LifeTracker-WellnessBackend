@@ -1,6 +1,8 @@
 package com.wellness.backend.controller;
 
 import com.wellness.backend.dto.request.DailyCheckInRequest;
+import com.wellness.backend.dto.response.CheckInDetailResponse;
+import com.wellness.backend.dto.response.CheckInSummaryResponse;
 import com.wellness.backend.enums.EmotionalState;
 import com.wellness.backend.model.DailyCheckIn;
 import com.wellness.backend.model.HabitTask;
@@ -77,5 +79,20 @@ public class DailyCheckInController {
     public ResponseEntity<List<DailyCheckIn>> getHistory(
             @PathVariable Long patientId) {
         return ResponseEntity.ok(checkInService.getHistory(patientId));
+    }
+
+    // Últimos 30 días
+    @GetMapping("/last-30-days")
+    public ResponseEntity<List<CheckInSummaryResponse>> getLast30Days(
+            @PathVariable Long patientId) {
+        return ResponseEntity.ok(checkInService.getLast30Days(patientId));
+    }
+
+    // Detalle de un día específico
+    @GetMapping("/{checkInId}/detail")
+    public ResponseEntity<CheckInDetailResponse> getCheckInDetail(
+            @PathVariable Long patientId,
+            @PathVariable Long checkInId) {
+        return ResponseEntity.ok(checkInService.getCheckInDetail(patientId, checkInId));
     }
 }
