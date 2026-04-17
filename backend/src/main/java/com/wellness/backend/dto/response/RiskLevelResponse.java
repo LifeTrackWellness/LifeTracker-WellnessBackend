@@ -98,4 +98,5 @@ public class RiskLevelResponse {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
 }

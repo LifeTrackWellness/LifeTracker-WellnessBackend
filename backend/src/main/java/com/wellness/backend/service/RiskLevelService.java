@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.wellness.backend.dto.response.RiskLevelHistoryResponse;
 import com.wellness.backend.dto.response.RiskLevelResponse;
@@ -23,7 +24,6 @@ import com.wellness.backend.repository.HabitTaskRepository;
 import com.wellness.backend.repository.PatientRepository;
 import com.wellness.backend.repository.RiskLevelHistoryRepository;
 import com.wellness.backend.repository.TaskCheckInRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RiskLevelService {
