@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.wellness.backend.enums.DeactivationReason;
 import com.wellness.backend.enums.PatientStatus;
 import com.wellness.backend.enums.DocumentType;
+import com.wellness.backend.model.ClinicalInfo;
+import com.wellness.backend.model.Guardian;
+import com.wellness.backend.model.PatientConsent;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,6 +16,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "patients")
@@ -76,5 +80,10 @@ public class Patient {
     @OneToMany(mappedBy = "patient")
     @JsonManagedReference
     private List<Guardian> guardians;
+
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
+    private List<PatientConsent> consents = new ArrayList<>();
+
+
 
 }
