@@ -66,4 +66,9 @@ public class HabitPlanController {
         habitPlanService.deleteTask(taskId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/tasks/today")
+    public ResponseEntity<List<HabitTask>> getTasksForToday(@PathVariable Long patientId) {
+        return ResponseEntity.ok(habitPlanService.getTasksForToday(patientId));
+    }
 }

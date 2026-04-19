@@ -1,10 +1,13 @@
 package com.wellness.backend.model;
 
+import com.wellness.backend.enums.TaskPriority;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -28,6 +31,24 @@ public class HabitTask {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TaskPriority priority = TaskPriority.MEDIA;
+
+    @Column(nullable = false)
+    private boolean mandatory = false;
+
+    @Column(name = "weekly_goal")
+    private Integer weeklyGoal;
+
+    @ElementCollection
+    @CollectionTable(
+            name = "habit_task_specific_days",
+            joinColumns = @JoinColumn(name = "habit_task_id")
+    )
+    @Column(name = "specific_days")
+    private List<String> specificDays = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
