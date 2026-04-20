@@ -1,5 +1,6 @@
 package com.wellness.backend.service;
 
+
 import com.wellness.backend.dto.request.HabitPlanRequest;
 import com.wellness.backend.dto.request.HabitTaskRequest;
 import com.wellness.backend.enums.PlanStatus;
@@ -12,9 +13,15 @@ import com.wellness.backend.repository.HabitPlanRepository;
 import com.wellness.backend.repository.HabitTaskRepository;
 import com.wellness.backend.repository.PatientRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 public class HabitPlanService {
@@ -24,7 +31,7 @@ public class HabitPlanService {
     private final PatientRepository patientRepository;
 
     public HabitPlanService(HabitPlanRepository habitPlanRepository, HabitTaskRepository habitTaskRepository,
-            PatientRepository patientRepository) {
+                            PatientRepository patientRepository) {
         this.habitPlanRepository = habitPlanRepository;
         this.habitTaskRepository = habitTaskRepository;
         this.patientRepository = patientRepository;
@@ -118,8 +125,34 @@ public class HabitPlanService {
         task.setHabitPlan(plan);
         task.setName(request.getName());
         task.setDescription(request.getDescription());
+        task.setPriority(request.getPriority());
+        task.setMandatory(request.isMandatory());
+        task.setWeeklyGoal(request.getWeeklyGoal());
+        task.setSpecificDays(request.getSpecificDays());
         return habitTaskRepository.save(task);
     }
+
+    @Transactional(readOnly = true)
+    public List<HabitTask> getTasksForToday(Long patientId) {
+        String todayRaw = LocalDate.now()
+                .getDayOfWeek()
+                .getDisplayName(TextStyle.FULL, new Locale("es", "CO"));
+        final String today = todayRaw.substring(0, 1).toUpperCase() + todayRaw.substring(1);
+
+        Optional<HabitPlan> activePlan = habitPlanRepository
+                .findByPatientIdAndStatus(patientId, PlanStatus.ACTIVO);
+
+        if (activePlan.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return activePlan.get().getTasks()
+                .stream()
+                .filter(task -> task.getSpecificDays().contains(today))
+                .collect(Collectors.toList());
+    }
+
+
 
     @Transactional
     public void deleteTask(Long taskId) {
