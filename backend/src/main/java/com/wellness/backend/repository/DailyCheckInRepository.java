@@ -15,4 +15,6 @@ public interface DailyCheckInRepository extends JpaRepository<DailyCheckIn, Long
 
     List<DailyCheckIn> findByPatientIdOrderByCheckInDateDesc(Long patientId);
 
+    List<DailyCheckIn> findByPatientIdAndCheckInDateBetween(Long patientId, LocalDate from, LocalDate to);
+
 }
