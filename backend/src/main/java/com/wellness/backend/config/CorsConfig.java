@@ -1,4 +1,4 @@
-package com.wellness.config;
+package com.wellness.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
