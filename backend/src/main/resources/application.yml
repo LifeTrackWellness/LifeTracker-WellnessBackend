@@ -29,6 +29,23 @@ spring:
       mode: always
       defer-datasource-initialization: true
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: andrea.marin1713@gmail.com       #  Gmail
+    password: btsabgxgtphqxawl        #  la app password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 server:
   port: 8080
+
+app:
+  jwt:
+    secret: lifetracker-wellness-super-secret-key-2024-minimum-32-chars
+    expiration-ms: 86400000
+  frontend-url: http://localhost:5173
