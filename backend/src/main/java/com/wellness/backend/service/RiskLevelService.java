@@ -95,7 +95,7 @@ public class RiskLevelService {
                     RiskLevelHistory temp = new RiskLevelHistory();
                     temp.setRiskLevel(riskLevel);
                     temp.setCompliancePercentage(compliance);
-                    temp.setEvaluatedDate(LocalDate.now());
+                    temp.setEvaluatedDate(LocalDate.now(java.time.ZoneId.of("America/Bogota")));
                     return toResponse(patient, temp);
                 });
     }
@@ -150,7 +150,7 @@ public class RiskLevelService {
             return 0.0;
 
         // Check-ins de los últimos 7 días
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
         LocalDate weekAgo = today.minusDays(6);
 
         List<DailyCheckIn> checkIns = checkInRepository

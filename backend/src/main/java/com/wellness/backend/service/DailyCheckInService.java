@@ -29,11 +29,11 @@ public class DailyCheckInService {
     private final AdherenceService adherenceService;
 
     public DailyCheckInService(DailyCheckInRepository checkInRepository,
-                               TaskCheckInRepository taskCheckInRepository,
-                               PatientRepository patientRepository,
-                               HabitPlanRepository habitPlanRepository,
-                               HabitTaskRepository habitTaskRepository,
-                               AdherenceService adherenceService) {
+            TaskCheckInRepository taskCheckInRepository,
+            PatientRepository patientRepository,
+            HabitPlanRepository habitPlanRepository,
+            HabitTaskRepository habitTaskRepository,
+            AdherenceService adherenceService) {
         this.checkInRepository = checkInRepository;
         this.taskCheckInRepository = taskCheckInRepository;
         this.patientRepository = patientRepository;
@@ -63,7 +63,7 @@ public class DailyCheckInService {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
 
         if (checkInRepository.existsByPatientIdAndCheckInDate(patientId, today)) {
             throw new BusinessException("Ya realizaste tu registro de hoy. Puedes editarlo hasta las 23:59.");
@@ -95,7 +95,7 @@ public class DailyCheckInService {
 
     @Transactional
     public DailyCheckIn updateCheckIn(Long patientId, DailyCheckInRequest request) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
 
         DailyCheckIn checkIn = checkInRepository
                 .findByPatientIdAndCheckInDate(patientId, today)
@@ -133,7 +133,7 @@ public class DailyCheckInService {
     @Transactional(readOnly = true)
     public DailyCheckIn getTodayCheckIn(Long patientId) {
         return checkInRepository
-                .findByPatientIdAndCheckInDate(patientId, LocalDate.now())
+                .findByPatientIdAndCheckInDate(patientId, LocalDate.now(java.time.ZoneId.of("America/Bogota")))
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontro el registro de hoy"));
     }
 
@@ -142,10 +142,11 @@ public class DailyCheckInService {
         List<DailyCheckIn> checkIns = checkInRepository
                 .findByPatientIdOrderByCheckInDateDesc(patientId);
 
-        if (checkIns.isEmpty()) return 0;
+        if (checkIns.isEmpty())
+            return 0;
 
         int streak = 0;
-        LocalDate expected = LocalDate.now();
+        LocalDate expected = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
 
         for (DailyCheckIn checkIn : checkIns) {
             if (checkIn.getCheckInDate().equals(expected)) {
@@ -161,10 +162,14 @@ public class DailyCheckInService {
     public String getClosingMessage(Long patientId) {
         int streak = getCurrentStreak(patientId);
 
-        if (streak == 1) return "Primer dia completado. Cada gran habito empieza con un primer paso.";
-        if (streak < 4) return "Llevas " + streak + " dias seguidos. Lo estas logrando!";
-        if (streak < 7) return "Increible! " + streak + " dias de racha. Estas construyendo un habito real.";
-        if (streak < 14) return "Una semana completa! " + streak + " dias seguidos. Eres constante.";
+        if (streak == 1)
+            return "Primer dia completado. Cada gran habito empieza con un primer paso.";
+        if (streak < 4)
+            return "Llevas " + streak + " dias seguidos. Lo estas logrando!";
+        if (streak < 7)
+            return "Increible! " + streak + " dias de racha. Estas construyendo un habito real.";
+        if (streak < 14)
+            return "Una semana completa! " + streak + " dias seguidos. Eres constante.";
         return "Llevas " + streak + " dias consecutivos. Eres una inspiracion para ti mismo.";
     }
 
@@ -180,7 +185,7 @@ public class DailyCheckInService {
         patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
 
         List<DailyCheckIn> checkIns = checkInRepository
                 .findByPatientIdOrderByCheckInDateDesc(patientId);
