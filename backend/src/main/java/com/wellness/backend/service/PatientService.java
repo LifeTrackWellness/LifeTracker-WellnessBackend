@@ -2,6 +2,7 @@ package com.wellness.backend.service;
 
 import com.wellness.backend.dto.request.CreatePatientAccountRequest;
 import com.wellness.backend.dto.request.DeactivatePatientRequest;
+import com.wellness.backend.enums.DocumentType;
 import com.wellness.backend.dto.request.PatientListDTO;
 import com.wellness.backend.dto.request.ReactivatePatientRequest;
 import com.wellness.backend.enums.PatientStatus;
@@ -67,6 +68,11 @@ public class PatientService {
             throw new BusinessException("Ya existe un paciente con ese email");
         }
 
+        // Validar documento único
+        if (patientRepository.existsByIdentityDocument(request.getIdentityDocument())) {
+            throw new BusinessException("Ese documento ya está registrado");
+        }
+
         // Generar contraseña temporal y token de activación
         String tempPassword = generateTempPassword();
         String activationToken = UUID.randomUUID().toString();
@@ -81,7 +87,8 @@ public class PatientService {
         patient.setActivationTokenExpiresAt(LocalDateTime.now().plusHours(48));
         patient.setAccountActivated(false);
         patient.setProfessional(professional);
-        patient.setIdentityDocument(UUID.randomUUID().toString()); // temporal hasta que complete perfil
+        patient.setIdentityDocument(request.getIdentityDocument());
+        patient.setDocumentType(DocumentType.valueOf(request.getDocumentType()));
         patient.setStatus(PatientStatus.ACTIVO);
         patient.setRole(Role.PATIENT);
 
@@ -217,6 +224,7 @@ public class PatientService {
         java.util.Random random = new java.util.Random();
         for (int i = 0; i < 10; i++) {
             sb.append(chars.charAt(random.nextInt(chars.length())));
+
         }
         return sb.toString();
     }

@@ -31,6 +31,8 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     // Listar pacientes vinculados a un profesional específico
     List<Patient> findByProfessionalId(Long professionalId);
 
+    Optional<Patient> findByEmail(String email);
+
     // Filtrar por condición médica
     @Query("SELECT p FROM Patient p JOIN p.clinicalInfo c WHERE LOWER(c.mainCondition) LIKE LOWER(concat('%', :condition, '%'))")
     List<Patient> findByPrimaryCondition(@Param("condition") String condition);
