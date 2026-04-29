@@ -1,32 +1,49 @@
 package com.wellness.backend.service;
 
+import com.wellness.backend.dto.request.CreatePatientAccountRequest;
 import com.wellness.backend.dto.request.DeactivatePatientRequest;
+import com.wellness.backend.enums.DocumentType;
 import com.wellness.backend.dto.request.PatientListDTO;
 import com.wellness.backend.dto.request.ReactivatePatientRequest;
 import com.wellness.backend.enums.PatientStatus;
+import com.wellness.backend.enums.Role;
 import com.wellness.backend.exception.BusinessException;
 import com.wellness.backend.exception.ResourceNotFoundException;
 import com.wellness.backend.model.Patient;
-import com.wellness.backend.repository.ConsentTemplateRepository;
+import com.wellness.backend.model.Professional;
 import com.wellness.backend.repository.PatientRepository;
+import com.wellness.backend.repository.ProfessionalRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class PatientService {
+
     private final PatientRepository patientRepository;
     private final ConsentService consentService;
+    private final ProfessionalRepository professionalRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
-
-
-    public PatientService(PatientRepository patientRepository, ConsentService consentService) {
+    public PatientService(PatientRepository patientRepository,
+            ConsentService consentService,
+            ProfessionalRepository professionalRepository,
+            PasswordEncoder passwordEncoder,
+            EmailService emailService) {
         this.patientRepository = patientRepository;
         this.consentService = consentService;
+        this.professionalRepository = professionalRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
-
 
     // CRITERIO: Registrar un paciente con validación de documento único
     @Transactional
@@ -38,6 +55,76 @@ public class PatientService {
         Patient savedPatient = patientRepository.save(patient);
         consentService.generateConsentsForPatient(savedPatient); // ← línea nueva
         return savedPatient;
+    }
+
+    // CRITERIO: El profesional crea una cuenta de paciente desde su panel
+    // El sistema genera contraseña temporal y envía email de activación
+    @Transactional
+    public Patient createPatientAccount(Long professionalId, CreatePatientAccountRequest request) {
+        Professional professional = professionalRepository.findById(professionalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Profesional", professionalId));
+
+        if (patientRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException("Ya existe un paciente con ese email");
+        }
+
+        // Validar documento único
+        if (patientRepository.existsByIdentityDocument(request.getIdentityDocument())) {
+            throw new BusinessException("Ese documento ya está registrado");
+        }
+
+        // Generar contraseña temporal y token de activación
+        String tempPassword = generateTempPassword();
+        String activationToken = UUID.randomUUID().toString();
+
+        Patient patient = new Patient();
+        patient.setName(request.getName());
+        patient.setLastName(request.getLastName());
+        patient.setEmail(request.getEmail());
+        patient.setPassword(passwordEncoder.encode(tempPassword));
+        patient.setTempPassword(tempPassword);
+        patient.setActivationToken(activationToken);
+        patient.setActivationTokenExpiresAt(LocalDateTime.now().plusHours(48));
+        patient.setAccountActivated(false);
+        patient.setProfessional(professional);
+        patient.setIdentityDocument(request.getIdentityDocument());
+        patient.setDocumentType(DocumentType.valueOf(request.getDocumentType()));
+        patient.setStatus(PatientStatus.ACTIVO);
+        patient.setRole(Role.PATIENT);
+
+        patient = patientRepository.save(patient);
+        consentService.generateConsentsForPatient(patient);
+
+        // Enviar email con credenciales al paciente
+        try {
+            emailService.sendPatientCredentials(
+                    patient.getEmail(),
+                    patient.getName(),
+                    tempPassword,
+                    activationToken);
+        } catch (Exception e) {
+            log.warn("No se pudo enviar email a {}: {}", patient.getEmail(), e.getMessage());
+        }
+
+        return patient;
+    }
+
+    // CRITERIO: El paciente activa su cuenta desde el link recibido por email
+    @Transactional
+    public Patient activatePatientAccount(String token) {
+        Patient patient = patientRepository.findByActivationToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Token inválido o ya usado"));
+
+        if (patient.getActivationTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BusinessException("El enlace de activación ha vencido.");
+        }
+
+        patient.setAccountActivated(true);
+        patient.setActivationToken(null);
+        patient.setActivationTokenExpiresAt(null);
+        patient.setTempPassword(null);
+
+        return patientRepository.save(patient);
     }
 
     // CRITERIO: El terapeuta puede editar datos de contacto (correo, celular)
@@ -60,10 +147,16 @@ public class PatientService {
         return patientRepository.findByStatus(PatientStatus.INACTIVO);
     }
 
+    // Listar pacientes vinculados a un profesional específico
+    public List<Patient> getPatientsByProfessional(Long professionalId) {
+        return patientRepository.findByProfessionalId(professionalId);
+    }
+
     // Obtener paciente por id
     @Transactional(readOnly = true)
     public Patient getPatientById(Long id) {
-        return patientRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Paciente", id));
+        return patientRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente", id));
     }
 
     // Desactivar paciente (baja lógica) - requiere motivo
@@ -81,7 +174,6 @@ public class PatientService {
     }
 
     // Reactivar paciente - permite actualizar info básica
-
     @Transactional
     public Patient reactivatePatient(Long id, ReactivatePatientRequest request) {
         Patient patient = patientRepository.findById(id)
@@ -125,4 +217,15 @@ public class PatientService {
                 p.getStatus())).collect(Collectors.toList());
     }
 
+    // Genera una contraseña temporal aleatoria de 10 caracteres
+    private String generateTempPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+        for (int i = 0; i < 10; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+
+        }
+        return sb.toString();
+    }
 }

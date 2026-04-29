@@ -1,12 +1,11 @@
 package com.wellness.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.wellness.backend.enums.DeactivationReason;
-import com.wellness.backend.enums.PatientStatus;
 import com.wellness.backend.enums.DocumentType;
-import com.wellness.backend.model.ClinicalInfo;
-import com.wellness.backend.model.Guardian;
-import com.wellness.backend.model.PatientConsent;
+import com.wellness.backend.enums.PatientStatus;
+import com.wellness.backend.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -14,9 +13,10 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "patients")
@@ -44,7 +44,7 @@ public class Patient {
 
     @NotBlank(message = "El documento es obligatorio")
     @Column(unique = true, nullable = false)
-    private String identityDocument; // para el criterio de "documento único"
+    private String identityDocument;
 
     @Email(message = "Debe ser un correo valido")
     private String email;
@@ -65,14 +65,38 @@ public class Patient {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        if (this.status == null)
-            this.status = PatientStatus.ACTIVO;
-        if (this.documentType == null)
-            this.documentType = DocumentType.CEDULA;
-    }
+    // --- Campos de cuenta de acceso ---
+
+    @Column(name = "password")
+    @JsonIgnore
+    private String password;
+
+    @Column(name = "temp_password")
+    @JsonIgnore
+    private String tempPassword;
+
+    @Column(name = "activation_token")
+    @JsonIgnore
+    private String activationToken;
+
+    @Column(name = "activation_token_expires_at")
+    private LocalDateTime activationTokenExpiresAt;
+
+    @Column(name = "account_activated")
+    private boolean accountActivated = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role = Role.PATIENT;
+
+    // --- Relación con profesional ---
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "professional_id")
+    @JsonIgnore
+    private Professional professional;
+
+    // --- Relaciones existentes ---
 
     @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL)
     private ClinicalInfo clinicalInfo;
@@ -84,6 +108,15 @@ public class Patient {
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
     private List<PatientConsent> consents = new ArrayList<>();
 
-
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        if (this.status == null)
+            this.status = PatientStatus.ACTIVO;
+        if (this.documentType == null)
+            this.documentType = DocumentType.CEDULA;
+        if (this.role == null)
+            this.role = Role.PATIENT;
+    }
 
 }
