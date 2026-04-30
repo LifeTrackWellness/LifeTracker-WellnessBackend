@@ -13,20 +13,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class ConsentService
-{
+public class ConsentService {
     private final PatientConsentRepository patientConsentRepository;
     private final ConsentTemplateRepository consentTemplateRepository;
     private final PatientRepository patientRepository;
 
     public ConsentService(PatientConsentRepository patientConsentRepository,
-                          ConsentTemplateRepository consentTemplateRepository,
-                          PatientRepository patientRepository) {
+            ConsentTemplateRepository consentTemplateRepository,
+            PatientRepository patientRepository) {
         this.patientConsentRepository = patientConsentRepository;
         this.consentTemplateRepository = consentTemplateRepository;
         this.patientRepository = patientRepository;
     }
-
 
     @Transactional
     public void generateConsentsForPatient(Patient patient) {
@@ -67,6 +65,5 @@ public class ConsentService
         consent.setFechaAceptacion(LocalDateTime.now());
         return patientConsentRepository.save(consent);
     }
-
 
 }

@@ -2,9 +2,9 @@ package com.wellness.backend.service;
 
 import com.wellness.backend.dto.request.CreatePatientAccountRequest;
 import com.wellness.backend.dto.request.DeactivatePatientRequest;
-import com.wellness.backend.enums.DocumentType;
 import com.wellness.backend.dto.request.PatientListDTO;
 import com.wellness.backend.dto.request.ReactivatePatientRequest;
+import com.wellness.backend.enums.DocumentType;
 import com.wellness.backend.enums.PatientStatus;
 import com.wellness.backend.enums.Role;
 import com.wellness.backend.exception.BusinessException;
@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class PatientService {
-
     private final PatientRepository patientRepository;
     private final ConsentService consentService;
     private final ProfessionalRepository professionalRepository;
@@ -43,18 +42,6 @@ public class PatientService {
         this.professionalRepository = professionalRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
-    }
-
-    // CRITERIO: Registrar un paciente con validación de documento único
-    @Transactional
-    public Patient createPatient(Patient patient) {
-        if (patientRepository.existsByIdentityDocument(patient.getIdentityDocument())) {
-            throw new BusinessException(
-                    "Error: El documento de identidad " + patient.getIdentityDocument() + " ya está registrado.");
-        }
-        Patient savedPatient = patientRepository.save(patient);
-        consentService.generateConsentsForPatient(savedPatient); // ← línea nueva
-        return savedPatient;
     }
 
     // CRITERIO: El profesional crea una cuenta de paciente desde su panel
@@ -89,6 +76,7 @@ public class PatientService {
         patient.setProfessional(professional);
         patient.setIdentityDocument(request.getIdentityDocument());
         patient.setDocumentType(DocumentType.valueOf(request.getDocumentType()));
+        patient.setPhoneNumber(request.getPhoneNumber());
         patient.setStatus(PatientStatus.ACTIVO);
         patient.setRole(Role.PATIENT);
 
@@ -224,8 +212,8 @@ public class PatientService {
         java.util.Random random = new java.util.Random();
         for (int i = 0; i < 10; i++) {
             sb.append(chars.charAt(random.nextInt(chars.length())));
-
         }
         return sb.toString();
     }
+
 }
