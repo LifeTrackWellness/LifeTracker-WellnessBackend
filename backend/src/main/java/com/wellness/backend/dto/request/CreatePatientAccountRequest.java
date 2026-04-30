@@ -24,4 +24,5 @@ public class CreatePatientAccountRequest {
     @Pattern(regexp = "CEDULA|TARJETA_DE_IDENTIDAD", message = "Tipo de documento inválido")
     private String documentType = "CEDULA";
 
+    private String phoneNumber;
 }

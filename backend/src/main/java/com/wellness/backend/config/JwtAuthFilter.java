@@ -1,5 +1,6 @@
 package com.wellness.backend.config;
 
+import com.wellness.backend.repository.PatientRepository;
 import com.wellness.backend.repository.ProfessionalRepository;
 import com.wellness.backend.service.JwtService;
 import jakarta.servlet.FilterChain;
@@ -8,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -16,21 +18,21 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
-
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthFilter extends OncePerRequestFilter
-{
+public class JwtAuthFilter extends OncePerRequestFilter {
+
     private final JwtService jwtService;
     private final ProfessionalRepository professionalRepository;
+    private final PatientRepository patientRepository;
 
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+            FilterChain filterChain) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
 
@@ -47,20 +49,38 @@ public class JwtAuthFilter extends OncePerRequestFilter
         }
 
         final String email = jwtService.extractEmail(jwt);
+        final String role = jwtService.extractRole(jwt);
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            professionalRepository.findByEmail(email).ifPresent(professional -> {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                new User(professional.getEmail(), "", Collections.emptyList()),
-                                null,
-                                Collections.emptyList()
-                        );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            });
+            boolean authenticated = false;
+
+            // Buscar primero en profesionales
+            if ("PROFESSIONAL".equals(role)) {
+                var professionalOpt = professionalRepository.findByEmail(email);
+                if (professionalOpt.isPresent()) {
+                    setAuthentication(request, email, role);
+                    authenticated = true;
+                }
+            }
+
+            // Buscar en pacientes
+            if (!authenticated && "PATIENT".equals(role)) {
+                var patientOpt = patientRepository.findByEmail(email);
+                if (patientOpt.isPresent()) {
+                    setAuthentication(request, email, role);
+                }
+            }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void setAuthentication(HttpServletRequest request, String email, String role) {
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new User(email, "", List.of(new SimpleGrantedAuthority("ROLE_" + role))),
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authToken);
     }
 }

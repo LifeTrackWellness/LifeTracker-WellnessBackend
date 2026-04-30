@@ -24,13 +24,6 @@ public class PatientController {
         this.patientService = patientService;
     }
 
-    // POST: Registrar un nuevo paciente
-    @PostMapping
-    public ResponseEntity<Patient> createPatient(@Valid @RequestBody Patient patient) {
-        Patient savedPatient = patientService.createPatient(patient);
-        return new ResponseEntity<>(savedPatient, HttpStatus.CREATED);
-    }
-
     // POST: El profesional crea una cuenta de paciente desde su panel
     // Genera contraseña temporal y envía email de activación al paciente
     @PostMapping("/by-professional/{professionalId}")
@@ -50,10 +43,10 @@ public class PatientController {
 
     // PATCH: Editar solo datos de contacto
     @PatchMapping("/{id}/contact")
-    public ResponseEntity<Patient> updateContact(@PathVariable Long id, @RequestParam String email,
+    public ResponseEntity<Patient> updateContact(@PathVariable Long id,
+            @RequestParam String email,
             @RequestParam String phoneNumber) {
-        Patient updated = patientService.updateContactInfo(id, email, phoneNumber);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(patientService.updateContactInfo(id, email, phoneNumber));
     }
 
     // GET: Listar todos los pacientes activos (por defecto)
@@ -89,10 +82,12 @@ public class PatientController {
 
     // PATCH: Reactivar paciente - permite actualizar info básica
     @PatchMapping("/{id}/reactivate")
-    public ResponseEntity<Patient> reactivate(@PathVariable Long id, @RequestBody ReactivatePatientRequest request) {
+    public ResponseEntity<Patient> reactivate(@PathVariable Long id,
+            @RequestBody ReactivatePatientRequest request) {
         return ResponseEntity.ok(patientService.reactivatePatient(id, request));
     }
 
+    // GET: Buscar y filtrar pacientes
     @GetMapping("/list")
     public ResponseEntity<List<PatientListDTO>> listPatients(
             @RequestParam(required = false) String search,
@@ -100,4 +95,5 @@ public class PatientController {
             @RequestParam(required = false) String condition) {
         return ResponseEntity.ok(patientService.getAllPatientsFiltered(search, status, condition));
     }
+
 }
