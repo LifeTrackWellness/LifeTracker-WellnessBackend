@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -18,15 +19,13 @@ public class RuleEvaluationService {
     private final PlanRuleRepository planRuleRepository;
     private final RuleEvaluationLogRepository evaluationLogRepository;
     private final HabitPlanRepository habitPlanRepository;
-    private final DailyCheckInRepository checkInRepository;
-    private final TaskCheckInRepository taskCheckInRepository;
     private final PatientRepository patientRepository;
+    private final AdherenceSnapshotRepository snapshotRepository;
 
     // Evalúa todas las reglas activas del plan activo del paciente
     @Transactional
     public void evaluateRulesForPatient(Long patientId) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElse(null);
+        Patient patient = patientRepository.findById(patientId).orElse(null);
         if (patient == null)
             return;
 
@@ -51,12 +50,23 @@ public class RuleEvaluationService {
             return;
         }
 
-        // Calcular cumplimiento de hoy
-        double todayCompliance = calculateTodayCompliance(patientId);
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("America/Bogota"));
+
+        // Usar métricas de adherencia calculadas por AdherenceService
+        AdherenceSnapshot snapshot = snapshotRepository
+                .findByPatientAndSnapshotDate(patient, today)
+                .orElse(null);
+
+        if (snapshot == null) {
+            log.info("No hay snapshot de adherencia para paciente {} hoy — sin evaluación", patientId);
+            return;
+        }
+
+        // Usar cumplimiento semanal del snapshot de adherencia
+        double weeklyCompliance = snapshot.getWeeklyCompliance();
 
         for (PlanRule rule : activeRules) {
-            // Verificar que no se haya disparado hoy
+            // Verificar que no se haya evaluado hoy
             boolean alreadyEvaluated = evaluationLogRepository
                     .existsByPlanRuleIdAndPatientIdAndEvaluationDate(
                             rule.getId(), patientId, today);
@@ -66,12 +76,12 @@ public class RuleEvaluationService {
                 continue;
             }
 
-            // Evaluar la regla — se dispara si el cumplimiento es menor al umbral
+            // Evaluar — se dispara si la adherencia semanal es menor al umbral
             int umbral = rule.getUmbralPersonalizado() != null
                     ? rule.getUmbralPersonalizado()
                     : rule.getRuleTemplate().getUmbralDefault();
 
-            boolean triggered = todayCompliance < umbral;
+            boolean triggered = weeklyCompliance < umbral;
 
             // Registrar en log
             RuleEvaluationLog evalLog = new RuleEvaluationLog();
@@ -79,40 +89,23 @@ public class RuleEvaluationService {
             evalLog.setPatient(patient);
             evalLog.setEvaluationDate(today);
             evalLog.setTriggered(triggered);
-            evalLog.setComplianceValue(todayCompliance);
+            evalLog.setComplianceValue(weeklyCompliance);
             evaluationLogRepository.save(evalLog);
 
             if (triggered) {
-                log.warn("🔴 Regla DISPARADA — Paciente: {}, Regla: '{}', Cumplimiento: {}% < Umbral: {}%",
+                log.warn("🔴 Regla DISPARADA — Paciente: {}, Regla: '{}', Adherencia semanal: {}% < Umbral: {}%",
                         patientId,
                         rule.getRuleTemplate().getName(),
-                        todayCompliance,
+                        weeklyCompliance,
                         umbral);
             } else {
-                log.info("✅ Regla NO disparada — Paciente: {}, Regla: '{}', Cumplimiento: {}% >= Umbral: {}%",
+                log.info("✅ Regla NO disparada — Paciente: {}, Regla: '{}', Adherencia semanal: {}% >= Umbral: {}%",
                         patientId,
                         rule.getRuleTemplate().getName(),
-                        todayCompliance,
+                        weeklyCompliance,
                         umbral);
             }
         }
-    }
-
-    // Calcula el cumplimiento del día actual
-    private double calculateTodayCompliance(Long patientId) {
-        LocalDate today = LocalDate.now();
-        return checkInRepository
-                .findByPatientIdAndCheckInDate(patientId, today)
-                .map(checkIn -> {
-                    List<TaskCheckIn> taskCheckIns = taskCheckInRepository
-                            .findByCheckInId(checkIn.getId());
-                    if (taskCheckIns.isEmpty())
-                        return 0.0;
-                    long completed = taskCheckIns.stream()
-                            .filter(TaskCheckIn::isCompleted).count();
-                    return Math.round((completed * 100.0 / taskCheckIns.size()) * 10.0) / 10.0;
-                })
-                .orElse(0.0);
     }
 
 }
