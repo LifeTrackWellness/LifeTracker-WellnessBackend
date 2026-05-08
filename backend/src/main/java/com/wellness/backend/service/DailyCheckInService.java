@@ -9,6 +9,7 @@ import com.wellness.backend.exception.BusinessException;
 import com.wellness.backend.exception.ResourceNotFoundException;
 import com.wellness.backend.model.*;
 import com.wellness.backend.repository.*;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,26 +21,28 @@ import java.util.Map;
 
 @Service
 public class DailyCheckInService {
-
     private final DailyCheckInRepository checkInRepository;
     private final TaskCheckInRepository taskCheckInRepository;
     private final PatientRepository patientRepository;
     private final HabitPlanRepository habitPlanRepository;
     private final HabitTaskRepository habitTaskRepository;
     private final AdherenceService adherenceService;
+    private final RuleEvaluationService ruleEvaluationService;
 
     public DailyCheckInService(DailyCheckInRepository checkInRepository,
             TaskCheckInRepository taskCheckInRepository,
             PatientRepository patientRepository,
             HabitPlanRepository habitPlanRepository,
             HabitTaskRepository habitTaskRepository,
-            AdherenceService adherenceService) {
+            AdherenceService adherenceService,
+            @Lazy RuleEvaluationService ruleEvaluationService) {
         this.checkInRepository = checkInRepository;
         this.taskCheckInRepository = taskCheckInRepository;
         this.patientRepository = patientRepository;
         this.habitPlanRepository = habitPlanRepository;
         this.habitTaskRepository = habitTaskRepository;
         this.adherenceService = adherenceService;
+        this.ruleEvaluationService = ruleEvaluationService;
     }
 
     public List<com.wellness.backend.enums.EmotionalState> getEmotionalStates() {
@@ -89,7 +92,10 @@ public class DailyCheckInService {
             }
         }
 
-        adherenceService.calculateAndSave(patientId); // ← nuevo
+        // Calcular métricas y evaluar reglas
+        adherenceService.calculateAndSave(patientId);
+        ruleEvaluationService.evaluateRulesForPatient(patientId);
+
         return checkInRepository.findById(checkIn.getId()).orElse(checkIn);
     }
 
@@ -126,7 +132,10 @@ public class DailyCheckInService {
             }
         }
 
-        adherenceService.calculateAndSave(patientId); // ← nuevo
+        // Recalcular métricas y re-evaluar reglas
+        adherenceService.calculateAndSave(patientId);
+        ruleEvaluationService.evaluateRulesForPatient(patientId);
+
         return checkInRepository.findById(checkIn.getId()).orElse(checkIn);
     }
 
@@ -161,7 +170,6 @@ public class DailyCheckInService {
 
     public String getClosingMessage(Long patientId) {
         int streak = getCurrentStreak(patientId);
-
         if (streak == 1)
             return "Primer dia completado. Cada gran habito empieza con un primer paso.";
         if (streak < 4)
