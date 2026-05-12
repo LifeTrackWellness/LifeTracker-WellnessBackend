@@ -60,4 +60,20 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    public void sendRiskAlertEmail(String toEmail, String professionalName,
+                                   String patientName, String description) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(toEmail);
+        message.setSubject("⚠️ Alerta de riesgo alto — " + patientName);
+        message.setText(
+                "Hola " + professionalName + ",\n\n" +
+                        "Tu paciente " + patientName + " ha sido identificado en nivel de riesgo ALTO.\n\n" +
+                        "Descripción: " + description + "\n\n" +
+                        "Te recomendamos revisar su estado lo antes posible en la plataforma.\n\n" +
+                        "Equipo LifeTracker Wellness"
+        );
+        mailSender.send(message);
+    }
+
 }

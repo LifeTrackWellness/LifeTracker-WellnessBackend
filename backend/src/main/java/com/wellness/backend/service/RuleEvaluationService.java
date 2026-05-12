@@ -1,10 +1,11 @@
 package com.wellness.backend.service;
 
+import com.wellness.backend.enums.AlertType;
 import com.wellness.backend.enums.PlanStatus;
 import com.wellness.backend.model.*;
 import com.wellness.backend.repository.*;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,22 +15,35 @@ import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class RuleEvaluationService {
+
     private final PlanRuleRepository planRuleRepository;
     private final RuleEvaluationLogRepository evaluationLogRepository;
     private final HabitPlanRepository habitPlanRepository;
     private final PatientRepository patientRepository;
     private final AdherenceSnapshotRepository snapshotRepository;
+    private final AlertService alertService;
 
-    // Evalúa todas las reglas activas del plan activo del paciente
+    public RuleEvaluationService(
+            PlanRuleRepository planRuleRepository,
+            RuleEvaluationLogRepository evaluationLogRepository,
+            HabitPlanRepository habitPlanRepository,
+            PatientRepository patientRepository,
+            AdherenceSnapshotRepository snapshotRepository,
+            @Lazy AlertService alertService) {
+        this.planRuleRepository = planRuleRepository;
+        this.evaluationLogRepository = evaluationLogRepository;
+        this.habitPlanRepository = habitPlanRepository;
+        this.patientRepository = patientRepository;
+        this.snapshotRepository = snapshotRepository;
+        this.alertService = alertService;
+    }
+
     @Transactional
     public void evaluateRulesForPatient(Long patientId) {
         Patient patient = patientRepository.findById(patientId).orElse(null);
-        if (patient == null)
-            return;
+        if (patient == null) return;
 
-        // Solo evaluar planes activos
         HabitPlan activePlan = habitPlanRepository
                 .findByPatientIdAndStatus(patientId, PlanStatus.ACTIVO)
                 .orElse(null);
@@ -38,7 +52,6 @@ public class RuleEvaluationService {
             return;
         }
 
-        // Obtener reglas activas del plan
         List<PlanRule> activeRules = planRuleRepository
                 .findAllByHabitPlan(activePlan)
                 .stream()
@@ -52,7 +65,6 @@ public class RuleEvaluationService {
 
         LocalDate today = LocalDate.now(ZoneId.of("America/Bogota"));
 
-        // Usar métricas de adherencia calculadas por AdherenceService
         AdherenceSnapshot snapshot = snapshotRepository
                 .findByPatientAndSnapshotDate(patient, today)
                 .orElse(null);
@@ -62,11 +74,9 @@ public class RuleEvaluationService {
             return;
         }
 
-        // Usar cumplimiento semanal del snapshot de adherencia
         double weeklyCompliance = snapshot.getWeeklyCompliance();
 
         for (PlanRule rule : activeRules) {
-            // Verificar que no se haya evaluado hoy
             boolean alreadyEvaluated = evaluationLogRepository
                     .existsByPlanRuleIdAndPatientIdAndEvaluationDate(
                             rule.getId(), patientId, today);
@@ -76,14 +86,12 @@ public class RuleEvaluationService {
                 continue;
             }
 
-            // Evaluar — se dispara si la adherencia semanal es menor al umbral
             int umbral = rule.getUmbralPersonalizado() != null
                     ? rule.getUmbralPersonalizado()
                     : rule.getRuleTemplate().getUmbralDefault();
 
             boolean triggered = weeklyCompliance < umbral;
 
-            // Registrar en log
             RuleEvaluationLog evalLog = new RuleEvaluationLog();
             evalLog.setPlanRule(rule);
             evalLog.setPatient(patient);
@@ -93,19 +101,19 @@ public class RuleEvaluationService {
             evaluationLogRepository.save(evalLog);
 
             if (triggered) {
-                log.warn("🔴 Regla DISPARADA — Paciente: {}, Regla: '{}', Adherencia semanal: {}% < Umbral: {}%",
+                log.warn("🔴 Regla DISPARADA — Paciente: {}, Regla: '{}', Adherencia: {}% < Umbral: {}%",
+                        patientId, rule.getRuleTemplate().getName(), weeklyCompliance, umbral);
+
+                alertService.createAlertIfNotExists(
                         patientId,
-                        rule.getRuleTemplate().getName(),
-                        weeklyCompliance,
-                        umbral);
+                        AlertType.RIESGO_ALTO,
+                        "Regla disparada: '" + rule.getRuleTemplate().getName() +
+                                "' — Adherencia semanal: " + weeklyCompliance + "%"
+                );
             } else {
-                log.info("✅ Regla NO disparada — Paciente: {}, Regla: '{}', Adherencia semanal: {}% >= Umbral: {}%",
-                        patientId,
-                        rule.getRuleTemplate().getName(),
-                        weeklyCompliance,
-                        umbral);
+                log.info("✅ Regla NO disparada — Paciente: {}, Regla: '{}', Adherencia: {}%",
+                        patientId, rule.getRuleTemplate().getName(), weeklyCompliance);
             }
         }
     }
-
 }

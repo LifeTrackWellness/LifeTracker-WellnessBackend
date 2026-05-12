@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.wellness.backend.enums.AlertType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,8 @@ import com.wellness.backend.repository.HabitTaskRepository;
 import com.wellness.backend.repository.PatientRepository;
 import com.wellness.backend.repository.RiskLevelHistoryRepository;
 import com.wellness.backend.repository.TaskCheckInRepository;
+import org.springframework.context.annotation.Lazy;
+
 
 @Service
 public class RiskLevelService {
@@ -33,19 +36,22 @@ public class RiskLevelService {
     private final DailyCheckInRepository checkInRepository;
     private final TaskCheckInRepository taskCheckInRepository;
     private final RiskLevelHistoryRepository riskLevelHistoryRepository;
+    private final AlertService alertService;
 
     public RiskLevelService(PatientRepository patientRepository,
-            HabitPlanRepository habitPlanRepository,
-            HabitTaskRepository habitTaskRepository,
-            DailyCheckInRepository checkInRepository,
-            TaskCheckInRepository taskCheckInRepository,
-            RiskLevelHistoryRepository riskLevelHistoryRepository) {
+                            HabitPlanRepository habitPlanRepository,
+                            HabitTaskRepository habitTaskRepository,
+                            DailyCheckInRepository checkInRepository,
+                            TaskCheckInRepository taskCheckInRepository,
+                            RiskLevelHistoryRepository riskLevelHistoryRepository,
+                            @Lazy AlertService alertService) {    // ← agregar @Lazy aquí
         this.patientRepository = patientRepository;
         this.habitPlanRepository = habitPlanRepository;
         this.habitTaskRepository = habitTaskRepository;
         this.checkInRepository = checkInRepository;
         this.taskCheckInRepository = taskCheckInRepository;
         this.riskLevelHistoryRepository = riskLevelHistoryRepository;
+        this.alertService = alertService;
     }
 
     // Calcular y guardar nivel de riesgo de un paciente específico
@@ -75,6 +81,23 @@ public class RiskLevelService {
         history.setCompliancePercentage(compliance);
         history.setEvaluatedDate(today);
         riskLevelHistoryRepository.save(history);
+
+        // Generar alerta si el nivel es ROJO o AMARILLO
+        if (riskLevel == RiskLevel.ROJO) {
+            alertService.createAlertIfNotExists(
+                    patientId,
+                    AlertType.RIESGO_ALTO,
+                    "El paciente " + patient.getName() + " " + patient.getLastName() +
+                            " tiene un cumplimiento del " + compliance + "% esta semana."
+            );
+        } else if (riskLevel == RiskLevel.AMARILLO) {
+            alertService.createAlertIfNotExists(
+                    patientId,
+                    AlertType.RIESGO_MEDIO,
+                    "El paciente " + patient.getName() + " " + patient.getLastName() +
+                            " tiene un cumplimiento del " + compliance + "% esta semana."
+            );
+        }
 
         return toResponse(patient, history);
     }
