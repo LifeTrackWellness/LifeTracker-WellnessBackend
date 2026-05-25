@@ -22,7 +22,7 @@ public class EmailService {
         String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
+        message.setFrom("LifeTracker Wellness <" + fromEmail + ">");
         message.setTo(toEmail);
         message.setSubject("Confirma tu cuenta en LifeTracker Wellness");
         message.setText(
