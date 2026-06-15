@@ -118,10 +118,17 @@ public class AuthService {
 
         if (patient.getPassword() == null) {
             throw new BusinessException("Esta cuenta no tiene credenciales de acceso configuradas");
+
         }
 
         if (!passwordEncoder.matches(request.getPassword(), patient.getPassword())) {
+            log.info(">>> Paciente encontrado: {}", patient.getEmail());
+            log.info(">>> Cuenta activada: {}", patient.isAccountActivated());
+            log.info(">>> Password hash: {}", patient.getPassword());
+            log.info(">>> Password ingresada: {}", request.getPassword());
+            log.info(">>> Matches: {}", passwordEncoder.matches(request.getPassword(), patient.getPassword()));
             throw new BusinessException("Credenciales inválidas");
+
         }
 
         if (!patient.isAccountActivated()) {

@@ -1,28 +1,25 @@
 package com.wellness.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
+
     private final JavaMailSender mailSender;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
-    @Value("${spring.mail.username}")
-    private String fromEmail;
-
     public void sendVerificationEmail(String toEmail, String name, String verificationToken) {
         String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("LifeTracker Wellness <" + fromEmail + ">");
+        message.setFrom("LifeTracker Wellness <andreamarindiaz5@gmail.com>");
         message.setTo(toEmail);
         message.setSubject("Confirma tu cuenta en LifeTracker Wellness");
         message.setText(
@@ -37,11 +34,12 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendPatientCredentials(String toEmail, String name, String tempPassword, String activationToken) {
+    public void sendPatientCredentials(String toEmail, String name,
+                                       String tempPassword, String activationToken) {
         String activationLink = frontendUrl + "/activate?token=" + activationToken;
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
+        message.setFrom("LifeTracker Wellness <andreamarindiaz5@gmail.com>");
         message.setTo(toEmail);
         message.setSubject("Bienvenido a LifeTracker Wellness - Tus credenciales de acceso");
         message.setText(
@@ -63,7 +61,7 @@ public class EmailService {
     public void sendRiskAlertEmail(String toEmail, String professionalName,
                                    String patientName, String description) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
+        message.setFrom("LifeTracker Wellness <andreamarindiaz5@gmail.com>");
         message.setTo(toEmail);
         message.setSubject("⚠️ Alerta de riesgo alto — " + patientName);
         message.setText(
@@ -71,9 +69,8 @@ public class EmailService {
                         "Tu paciente " + patientName + " ha sido identificado en nivel de riesgo ALTO.\n\n" +
                         "Descripción: " + description + "\n\n" +
                         "Te recomendamos revisar su estado lo antes posible en la plataforma.\n\n" +
-                        "Equipo LifeTracker Wellness"
-        );
+                        "Equipo LifeTracker Wellness");
+
         mailSender.send(message);
     }
-
 }

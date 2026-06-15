@@ -29,11 +29,13 @@ spring:
       mode: always
       defer-datasource-initialization: true
 
+
+
   mail:
     host: smtp.gmail.com
     port: 587
-    username: andrea.marin1713@gmail.com #  Gmail
-    password: btsabgxgtphqxawl #  la app password
+    username: andreamarindiaz5@gmail.com
+    password: rdnv gjyx wtgc xoqm
     properties:
       mail:
         smtp:
