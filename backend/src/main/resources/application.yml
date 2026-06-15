@@ -31,11 +31,12 @@ spring:
 
 
 
+
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: andreamarindiaz5@gmail.com
-    password: rdnv gjyx wtgc xoqm
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:andreamarindiaz5@gmail.com}
+    password: ${MAIL_PASSWORD:rdnv gjyx wtgc xoqm}
     properties:
       mail:
         smtp:
