@@ -40,4 +40,4 @@ app:
   jwt:
     secret: lifetracker-wellness-super-secret-key-2024-minimum-32-chars
     expiration-ms: 86400000
-  frontend-url: http://localhost:5173
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
