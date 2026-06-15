@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +16,7 @@ public class EmailService {
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
+    @Async
     public void sendVerificationEmail(String toEmail, String name, String verificationToken) {
         String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
 
@@ -34,6 +36,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async
     public void sendPatientCredentials(String toEmail, String name,
                                        String tempPassword, String activationToken) {
         String activationLink = frontendUrl + "/activate?token=" + activationToken;
@@ -58,6 +61,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async
     public void sendRiskAlertEmail(String toEmail, String professionalName,
                                    String patientName, String description) {
         SimpleMailMessage message = new SimpleMailMessage();
