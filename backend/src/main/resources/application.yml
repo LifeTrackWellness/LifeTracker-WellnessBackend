@@ -32,17 +32,8 @@ spring:
 
 
 
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:andreamarindiaz5@gmail.com}
-    password: ${MAIL_PASSWORD:rdnvgjyxwtgcxoqm}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+  resend:
+    api-key: ${RESEND_API_KEY:re_W97zNWeQ_FvybMVnLqauUHXeQRuch6TtC}
 
 server:
   port: 8080
