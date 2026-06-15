@@ -30,10 +30,8 @@ spring:
       defer-datasource-initialization: true
 
 
-
-
-  resend:
-    api-key: ${RESEND_API_KEY:re_W97zNWeQ_FvybMVnLqauUHXeQRuch6TtC}
+  brevo:
+    api-key: ${BREVO_API_KEY:tu-api-key-aqui}
 
 server:
   port: 8080

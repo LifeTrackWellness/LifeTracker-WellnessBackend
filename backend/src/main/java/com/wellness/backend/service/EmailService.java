@@ -1,12 +1,19 @@
 package com.wellness.backend.service;
 
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
+import sendinblue.ApiException;
+import sendinblue.Configuration;
+import sibApi.TransactionalEmailsApi;
+import sibModel.SendSmtpEmail;
+import sibModel.SendSmtpEmailTo;
+import sibModel.SendSmtpEmailSender;
+import sendinblue.ApiClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+
+import java.util.Collections;
 
 @Slf4j
 @Service
@@ -15,10 +22,11 @@ public class EmailService {
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
-    @Value("${resend.api-key}")
-    private String resendApiKey;
+    @Value("${brevo.api-key}")
+    private String brevoApiKey;
 
-    private static final String FROM = "LifeTracker Wellness <onboarding@resend.dev>";
+    private static final String FROM_EMAIL = "lifetrackwellness@gmail.com";
+    private static final String FROM_NAME = "LifeTracker Wellness";
 
     @Async
     public void sendVerificationEmail(String toEmail, String name, String verificationToken) {
@@ -31,7 +39,7 @@ public class EmailService {
                         "Este enlace vence en 24 horas.\n\n" +
                         "Si no creaste esta cuenta, ignora este mensaje.\n\n" +
                         "Equipo LifeTracker Wellness";
-        send(toEmail, "Confirma tu cuenta en LifeTracker Wellness", body);
+        send(toEmail, name, "Confirma tu cuenta en LifeTracker Wellness", body);
     }
 
     @Async
@@ -50,7 +58,7 @@ public class EmailService {
                         "Una vez activada tu cuenta podrás cambiar tu contraseña.\n\n" +
                         "Si no esperabas este mensaje, ignóralo.\n\n" +
                         "Equipo LifeTracker Wellness";
-        send(toEmail, "Bienvenido a LifeTracker Wellness - Tus credenciales de acceso", body);
+        send(toEmail, name, "Bienvenido a LifeTracker Wellness - Tus credenciales de acceso", body);
     }
 
     @Async
@@ -62,21 +70,34 @@ public class EmailService {
                         "Descripción: " + description + "\n\n" +
                         "Te recomendamos revisar su estado lo antes posible en la plataforma.\n\n" +
                         "Equipo LifeTracker Wellness";
-        send(toEmail, "⚠️ Alerta de riesgo alto — " + patientName, body);
+        send(toEmail, professionalName, "⚠️ Alerta de riesgo alto — " + patientName, body);
     }
 
-    private void send(String toEmail, String subject, String body) {
+    private void send(String toEmail, String toName, String subject, String body) {
         try {
-            Resend resend = new Resend(resendApiKey);
-            CreateEmailOptions params = CreateEmailOptions.builder()
-                    .from(FROM)
-                    .to(toEmail)
-                    .subject(subject)
-                    .text(body)
-                    .build();
-            resend.emails().send(params);
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            defaultClient.setApiKey(brevoApiKey);
+
+            TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setEmail(FROM_EMAIL);
+            sender.setName(FROM_NAME);
+
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(toEmail);
+            recipient.setName(toName);
+
+            SendSmtpEmail email = new SendSmtpEmail();
+            email.setSender(sender);
+            email.setTo(Collections.singletonList(recipient));
+            email.setSubject(subject);
+            email.setTextContent(body);
+
+            apiInstance.sendTransacEmail(email);
             log.info(">>> Email enviado a: {}", toEmail);
-        } catch (ResendException e) {
+
+        } catch (ApiException e) {
             log.error(">>> Error enviando email a {}: {}", toEmail, e.getMessage());
         }
     }

@@ -102,6 +102,13 @@
 			<version>3.1.0</version>
 		</dependency>
 
+		<!-- Brevo API -->
+		<dependency>
+			<groupId>com.sendinblue</groupId>
+			<artifactId>sib-api-v3-sdk</artifactId>
+			<version>7.0.0</version>
+		</dependency>
+
 	</dependencies>
 
 
