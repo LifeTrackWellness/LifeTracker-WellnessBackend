@@ -26,7 +26,7 @@ public class DailyCheckIn {
     private Estudiante estudiante;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "emotional_state", nullable = false)
+    @Column(name = "emotional_state")
     private EmotionalState emotionalState;
 
     @Column(name = "check_in_date", nullable = false)

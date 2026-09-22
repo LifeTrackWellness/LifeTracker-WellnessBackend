@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+
 import java.util.Collections;
 
 @Slf4j
@@ -30,68 +31,46 @@ public class EmailService {
     @Async
     public void sendVerificationEmail(String toEmail, String name, String verificationToken) {
         String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
-        String body = "Hola " + name + ",\n\n" +
-                "Gracias por registrarte en COMPA.\n\n" +
-                "Confirma tu cuenta haciendo clic aquí:\n" +
-                verificationLink + "\n\n" +
-                "Este enlace vence en 24 horas.\n\n" +
-                "Si no creaste esta cuenta, ignora este mensaje.\n\n" +
-                "Equipo COMPA";
+        String body =
+                "Hola " + name + ",\n\n" +
+                        "Gracias por registrarte en COMPA.\n\n" +
+                        "Confirma tu cuenta haciendo clic aquí:\n" +
+                        verificationLink + "\n\n" +
+                        "Este enlace vence en 24 horas.\n\n" +
+                        "Si no creaste esta cuenta, ignora este mensaje.\n\n" +
+                        "Equipo COMPA";
         send(toEmail, name, "Confirma tu cuenta en COMPA", body);
     }
 
     @Async
     public void sendEstudianteCredentials(String toEmail, String name,
-            String tempPassword, String activationToken) {
+                                       String tempPassword, String activationToken) {
         String activationLink = frontendUrl + "/activate?token=" + activationToken;
-        String body = "Hola " + name + ",\n\n" +
-                "Tu orientador te ha registrado en COMPA.\n\n" +
-                "Tus credenciales temporales son:\n" +
-                "- Email: " + toEmail + "\n" +
-                "- Contraseña temporal: " + tempPassword + "\n\n" +
-                "Por favor activa tu cuenta haciendo clic aquí:\n" +
-                activationLink + "\n\n" +
-                "Este enlace vence en 48 horas.\n\n" +
-                "Una vez activada tu cuenta podrás cambiar tu contraseña.\n\n" +
-                "Si no esperabas este mensaje, ignóralo.\n\n" +
-                "Equipo COMPA";
+        String body =
+                "Hola " + name + ",\n\n" +
+                        "Tu orientador te ha registrado en COMPA.\n\n" +
+                        "Tus credenciales temporales son:\n" +
+                        "- Email: " + toEmail + "\n" +
+                        "- Contraseña temporal: " + tempPassword + "\n\n" +
+                        "Por favor activa tu cuenta haciendo clic aquí:\n" +
+                        activationLink + "\n\n" +
+                        "Este enlace vence en 48 horas.\n\n" +
+                        "Una vez activada tu cuenta podrás cambiar tu contraseña.\n\n" +
+                        "Si no esperabas este mensaje, ignóralo.\n\n" +
+                        "Equipo COMPA";
         send(toEmail, name, "Bienvenido a COMPA - Tus credenciales de acceso", body);
     }
 
     @Async
     public void sendRiskAlertEmail(String toEmail, String orientadorName,
-            String estudianteName, String description) {
-        String body = "Hola " + orientadorName + ",\n\n" +
-                "Tu estudiante " + estudianteName + " ha sido identificado en nivel de riesgo ALTO.\n\n" +
-                "Descripción: " + description + "\n\n" +
-                "Te recomendamos revisar su estado lo antes posible en la plataforma.\n\n" +
-                "Equipo COMPA";
+                                   String estudianteName, String description) {
+        String body =
+                "Hola " + orientadorName + ",\n\n" +
+                        "Tu estudiante " + estudianteName + " ha sido identificado en nivel de riesgo ALTO.\n\n" +
+                        "Descripción: " + description + "\n\n" +
+                        "Te recomendamos revisar su estado lo antes posible en la plataforma.\n\n" +
+                        "Equipo COMPA";
         send(toEmail, orientadorName, "⚠️ Alerta de riesgo alto — " + estudianteName, body);
-    }
-
-    @Async
-    public void sendTaskReminderEmail(String toEmail, String name, java.util.List<String> pendingTaskNames,
-            boolean isFollowUp) {
-        StringBuilder taskList = new StringBuilder();
-        for (String taskName : pendingTaskNames) {
-            taskList.append("- ").append(taskName).append("\n");
-        }
-
-        String subject = isFollowUp
-                ? "Recordatorio: aún tienes tareas pendientes en COMPA"
-                : "Tienes tareas pendientes hoy en COMPA";
-
-        String intro = isFollowUp
-                ? "Vimos que todavía no has marcado algunas tareas de hoy:\n\n"
-                : "Este es tu recordatorio de tareas pendientes por hoy:\n\n";
-
-        String body = "Hola " + name + ",\n\n" +
-                intro +
-                taskList +
-                "\nPuedes registrarlas desde tu cuenta en COMPA.\n\n" +
-                "Equipo COMPA";
-
-        send(toEmail, name, subject, body);
     }
 
     private void send(String toEmail, String toName, String subject, String body) {

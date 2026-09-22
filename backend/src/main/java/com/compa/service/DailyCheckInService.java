@@ -30,12 +30,12 @@ public class DailyCheckInService {
     private final RuleEvaluationService ruleEvaluationService;
 
     public DailyCheckInService(DailyCheckInRepository checkInRepository,
-            TaskCheckInRepository taskCheckInRepository,
-            EstudianteRepository estudianteRepository,
-            HabitPlanRepository habitPlanRepository,
-            HabitTaskRepository habitTaskRepository,
-            AdherenceService adherenceService,
-            @Lazy RuleEvaluationService ruleEvaluationService) {
+                               TaskCheckInRepository taskCheckInRepository,
+                               EstudianteRepository estudianteRepository,
+                               HabitPlanRepository habitPlanRepository,
+                               HabitTaskRepository habitTaskRepository,
+                               AdherenceService adherenceService,
+                               @Lazy RuleEvaluationService ruleEvaluationService) {
         this.checkInRepository = checkInRepository;
         this.taskCheckInRepository = taskCheckInRepository;
         this.estudianteRepository = estudianteRepository;
@@ -68,14 +68,24 @@ public class DailyCheckInService {
 
         LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
 
-        if (checkInRepository.existsByEstudianteIdAndCheckInDate(estudianteId, today)) {
+        DailyCheckIn checkIn = checkInRepository
+                .findByEstudianteIdAndCheckInDate(estudianteId, today)
+                .orElse(null);
+
+        // Un registro puede existir sin estado de ánimo si el estudiante ya
+        // completó una tarea desde una notificación (HU-03) antes de abrir la
+        // app. En ese caso no es "ya hiciste tu check-in hoy": se completa
+        // ese mismo registro en vez de bloquear o duplicar.
+        if (checkIn != null && checkIn.getEmotionalState() != null) {
             throw new BusinessException("Ya realizaste tu registro de hoy. Puedes editarlo hasta las 23:59.");
         }
 
-        DailyCheckIn checkIn = new DailyCheckIn();
-        checkIn.setEstudiante(estudiante);
+        if (checkIn == null) {
+            checkIn = new DailyCheckIn();
+            checkIn.setEstudiante(estudiante);
+            checkIn.setCheckInDate(today);
+        }
         checkIn.setEmotionalState(request.getEmotionalState());
-        checkIn.setCheckInDate(today);
         checkIn = checkInRepository.save(checkIn);
 
         if (request.getTasks() != null) {
@@ -83,7 +93,12 @@ public class DailyCheckInService {
                 HabitTask task = habitTaskRepository.findById(taskRequest.getTaskId())
                         .orElseThrow(() -> new ResourceNotFoundException("Tarea", taskRequest.getTaskId()));
 
-                TaskCheckIn taskCheckIn = new TaskCheckIn();
+                // Upsert: si la tarea ya tenía un TaskCheckIn (p.ej. creado por
+                // la acción rápida de una notificación), se actualiza en vez
+                // de duplicarlo.
+                TaskCheckIn taskCheckIn = taskCheckInRepository
+                        .findByCheckInIdAndTaskId(checkIn.getId(), taskRequest.getTaskId())
+                        .orElseGet(TaskCheckIn::new);
                 taskCheckIn.setCheckIn(checkIn);
                 taskCheckIn.setTask(task);
                 taskCheckIn.setCompleted(taskRequest.isCompleted());
@@ -137,6 +152,51 @@ public class DailyCheckInService {
         ruleEvaluationService.evaluateRulesForEstudiante(estudianteId);
 
         return checkInRepository.findById(checkIn.getId()).orElse(checkIn);
+    }
+
+    /**
+     * Marca una tarea puntual como cumplida para el día de hoy, sin requerir
+     * que el estudiante haya completado el resto del check-in (emocional u
+     * otras tareas). Usado por la acción rápida "Marcar cumplida" desde una
+     * notificación (HU-03).
+     */
+    @Transactional
+    public TaskCheckIn markTaskCompleted(Long estudianteId, Long taskId) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
+
+        HabitTask task = habitTaskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarea", taskId));
+
+        if (!task.getHabitPlan().getEstudiante().getId().equals(estudianteId)) {
+            throw new ResourceNotFoundException("Tarea", taskId);
+        }
+
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
+
+        DailyCheckIn checkIn = checkInRepository
+                .findByEstudianteIdAndCheckInDate(estudianteId, today)
+                .orElseGet(() -> {
+                    DailyCheckIn newCheckIn = new DailyCheckIn();
+                    newCheckIn.setEstudiante(estudiante);
+                    newCheckIn.setCheckInDate(today);
+                    return checkInRepository.save(newCheckIn);
+                });
+
+        TaskCheckIn taskCheckIn = taskCheckInRepository
+                .findByCheckInIdAndTaskId(checkIn.getId(), taskId)
+                .orElseGet(TaskCheckIn::new);
+
+        taskCheckIn.setCheckIn(checkIn);
+        taskCheckIn.setTask(task);
+        taskCheckIn.setCompleted(true);
+        taskCheckIn.setBarrier(null);
+        taskCheckIn = taskCheckInRepository.save(taskCheckIn);
+
+        adherenceService.calculateAndSave(estudianteId);
+        ruleEvaluationService.evaluateRulesForEstudiante(estudianteId);
+
+        return taskCheckIn;
     }
 
     @Transactional(readOnly = true)
@@ -211,11 +271,12 @@ public class DailyCheckInService {
             DailyCheckIn checkIn = checkInMap.get(date);
 
             if (checkIn != null) {
+                boolean hasMood = checkIn.getEmotionalState() != null;
                 result.add(CheckInSummaryResponse.builder()
                         .date(date)
                         .status("COMPLETADO")
                         .emotionalState(checkIn.getEmotionalState())
-                        .emotionalStateIcon(checkIn.getEmotionalState().getIcon())
+                        .emotionalStateIcon(hasMood ? checkIn.getEmotionalState().getIcon() : null)
                         .checkInId(checkIn.getId())
                         .build());
             } else {
@@ -253,12 +314,13 @@ public class DailyCheckInService {
                         .build())
                 .collect(java.util.stream.Collectors.toList());
 
+        boolean hasMood = checkIn.getEmotionalState() != null;
         return CheckInDetailResponse.builder()
                 .id(checkIn.getId())
                 .checkInDate(checkIn.getCheckInDate())
                 .emotionalState(checkIn.getEmotionalState())
-                .emotionalStateIcon(checkIn.getEmotionalState().getIcon())
-                .emotionalStateLabel(checkIn.getEmotionalState().getDisplayName())
+                .emotionalStateIcon(hasMood ? checkIn.getEmotionalState().getIcon() : null)
+                .emotionalStateLabel(hasMood ? checkIn.getEmotionalState().getDisplayName() : null)
                 .createdAt(checkIn.getCreatedAt())
                 .updatedAt(checkIn.getUpdatedAt())
                 .tasks(taskDetails)

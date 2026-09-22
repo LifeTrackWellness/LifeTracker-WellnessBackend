@@ -31,6 +31,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         // El estudiante activa su cuenta desde el link del email sin estar autenticado
                         .requestMatchers(HttpMethod.POST, "/api/estudiantes/activate").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/notifications/actions/*/complete-task").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
