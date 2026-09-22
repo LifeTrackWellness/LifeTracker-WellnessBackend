@@ -1,6 +1,6 @@
-# LifeTrack Backend
+# COMPA Backend
 
-> Sistema de gestión para terapeutas y pacientes
+> COMPA - Acompañamiento estudiantil: sistema de gestión para orientadores y estudiantes
 
 **Spring Boot 3.5 | Java 17 | PostgreSQL (Neon) | Render**
 
@@ -8,9 +8,9 @@
 
 ## Descripción del Proyecto
 
-LifeTrack es una aplicación web diseñada para terapeutas que necesitan gestionar la información clínica de sus pacientes, hacer seguimiento de su estado de salud y asignarles planes de hábitos diarios. Los pacientes pueden realizar un registro diario (check-in) de su estado emocional y el cumplimiento de sus tareas en menos de 30 segundos.
+COMPA es una aplicación web diseñada para orientadores que necesitan gestionar la información clínica de sus estudiantes, hacer seguimiento de su estado de salud y asignarles planes de hábitos diarios. Los estudiantes pueden realizar un registro diario (check-in) de su estado emocional y el cumplimiento de sus tareas en menos de 30 segundos.
 
-El sistema garantiza que el historial clínico nunca se elimina físicamente, mantiene trazabilidad de todos los cambios de estado con justificación, y genera rachas de cumplimiento para motivar al paciente.
+El sistema garantiza que el historial clínico nunca se elimina físicamente, mantiene trazabilidad de todos los cambios de estado con justificación, y genera rachas de cumplimiento para motivar al estudiante.
 
 ---
 ## Equipo de Desarrollo
@@ -25,7 +25,7 @@ El sistema garantiza que el historial clínico nunca se elimina físicamente, ma
 
 El proyecto sigue una arquitectura en capas  con separación clara de responsabilidades:
 ```
-com.wellness.backend/
+com.compa/
 ├── controller/     → Expone los endpoints REST, recibe peticiones HTTP
 ├── service/        → Contiene la lógica de negocio y validaciones
 ├── repository/     → Interfaces JPA para acceso a la base de datos

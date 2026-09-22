@@ -8,11 +8,11 @@
 		<version>3.5.11</version>
 		<relativePath/>
 	</parent>
-	<groupId>com.wellness</groupId>
+	<groupId>com.compa</groupId>
 	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+	<name>compa-backend</name>
+	<description>Backend de COMPA - Acompañamiento estudiantil</description>
 	<url/>
 	<licenses><license/></licenses>
 	<developers><developer/></developers>

@@ -1,0 +1,6 @@
+package com.compa.enums;
+
+public enum DocumentType {
+    CEDULA,
+    TARJETA_DE_IDENTIDAD
+}

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: wellness-backend
+    name: compa-backend
 
   docker:
     compose:
@@ -29,9 +29,8 @@ spring:
       mode: always
       defer-datasource-initialization: true
 
-
-  brevo:
-    api-key: ${BREVO_API_KEY:tu-api-key-aqui}
+brevo:
+  api-key: ${BREVO_API_KEY:tu-api-key-aqui}
 
 server:
   port: 8080
