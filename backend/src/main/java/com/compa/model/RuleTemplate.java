@@ -1,5 +1,5 @@
 
-package com.wellness.backend.model;
+package com.compa.model;
 
 
 import jakarta.persistence.*;

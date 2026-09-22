@@ -1,6 +1,6 @@
-package com.wellness.backend.repository;
+package com.compa.repository;
 
-import com.wellness.backend.model.TaskCheckIn;
+import com.compa.model.TaskCheckIn;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;

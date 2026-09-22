@@ -1,11 +1,11 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
-import com.wellness.backend.dto.request.ConclusionRequest;
-import com.wellness.backend.dto.response.ProgressReportResponse;
-import com.wellness.backend.enums.RiskLevel;
-import com.wellness.backend.exception.ResourceNotFoundException;
-import com.wellness.backend.model.*;
-import com.wellness.backend.repository.*;
+import com.compa.dto.request.ConclusionRequest;
+import com.compa.dto.response.ProgressReportResponse;
+import com.compa.enums.RiskLevel;
+import com.compa.exception.ResourceNotFoundException;
+import com.compa.model.*;
+import com.compa.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,22 +19,22 @@ import java.util.stream.Collectors;
 @Transactional
 public class ProgressReportService {
 
-    private final PatientRepository patientRepository;
-    private final ProfessionalRepository professionalRepository;
+    private final EstudianteRepository estudianteRepository;
+    private final OrientadorRepository orientadorRepository;
     private final AdherenceSnapshotRepository adherenceSnapshotRepository;
     private final RiskLevelHistoryRepository riskLevelHistoryRepository;
     private final HealthStatusHistoryRepository healthStatusHistoryRepository;
     private final HabitPlanRepository habitPlanRepository;
-    private final TherapistConclusionRepository conclusionRepository;
+    private final OrientadorNotaRepository conclusionRepository;
 
-    public ProgressReportResponse getProgressReport(Long patientId) {
+    public ProgressReportResponse getProgressReport(Long estudianteId) {
 
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
         // 1. Métricas de adherencia
         AdherenceSnapshot latestSnapshot = adherenceSnapshotRepository
-                .findByPatientOrderBySnapshotDateDesc(patient)
+                .findByEstudianteOrderBySnapshotDateDesc(estudiante)
                 .stream().findFirst().orElse(null);
 
         Double weeklyCompliance = latestSnapshot != null ? latestSnapshot.getWeeklyCompliance() : 0.0;
@@ -42,7 +42,7 @@ public class ProgressReportService {
 
         // Mejor racha histórica
         Integer bestStreak = adherenceSnapshotRepository
-                .findByPatientOrderBySnapshotDateDesc(patient)
+                .findByEstudianteOrderBySnapshotDateDesc(estudiante)
                 .stream()
                 .mapToInt(AdherenceSnapshot::getCurrentStreak)
                 .max()
@@ -50,7 +50,7 @@ public class ProgressReportService {
 
         // 2. Últimos 7 días de riesgo
         List<RiskLevelHistory> riskHistory = riskLevelHistoryRepository
-                .findTop7ByPatientOrderByEvaluatedDateDesc(patient);
+                .findTop7ByEstudianteOrderByEvaluatedDateDesc(estudiante);
 
         List<ProgressReportResponse.RiskDayDTO> last7DaysRisk = riskHistory.stream()
                 .map(r -> ProgressReportResponse.RiskDayDTO.builder()
@@ -62,11 +62,11 @@ public class ProgressReportService {
 
         // Veces en riesgo ROJO
         Long highRiskCount = riskLevelHistoryRepository
-                .countByPatientAndRiskLevel(patient, RiskLevel.ROJO);
+                .countByEstudianteAndRiskLevel(estudiante, RiskLevel.ROJO);
 
         // 3. Evolución de salud
         List<HealthStatusHistory> statusHistory = healthStatusHistoryRepository
-                .findByClinicalInfo_PatientOrderByChangedAtAsc(patient);
+                .findByClinicalInfo_EstudianteOrderByChangedAtAsc(estudiante);
 
         HealthStatusHistory initialStatus = statusHistory.isEmpty() ? null : statusHistory.get(0);
         HealthStatusHistory currentStatus = statusHistory.isEmpty() ? null
@@ -74,7 +74,7 @@ public class ProgressReportService {
 
         // 4. Planes de hábitos
         List<ProgressReportResponse.HabitPlanDTO> habitPlans = habitPlanRepository
-                .findByPatient(patient)
+                .findByEstudiante(estudiante)
                 .stream()
                 .map(p -> ProgressReportResponse.HabitPlanDTO.builder()
                         .name(p.getName())
@@ -85,20 +85,20 @@ public class ProgressReportService {
 
         // 5. Conclusiones
         List<ProgressReportResponse.ConclusionDTO> conclusions = conclusionRepository
-                .findByPatientIdOrderByCreatedAtDesc(patientId)
+                .findByEstudianteIdOrderByCreatedAtDesc(estudianteId)
                 .stream()
                 .map(c -> ProgressReportResponse.ConclusionDTO.builder()
                         .id(c.getId())
                         .content(c.getContent())
-                        .therapistName(c.getProfessional().getName()
-                                + " " + c.getProfessional().getLastName())
+                        .orientadorName(c.getOrientador().getName()
+                                + " " + c.getOrientador().getLastName())
                         .createdAt(c.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
 
         return ProgressReportResponse.builder()
-                .patientFullName(patient.getName() + " " + patient.getLastName())
-                .therapistFullName("LifeTracker Wellness")
+                .estudianteFullName(estudiante.getName() + " " + estudiante.getLastName())
+                .orientadorFullName("COMPA - Acompañamiento estudiantil")
                 .generatedAt(LocalDateTime.now())
                 .weeklyCompliance(weeklyCompliance)
                 .currentStreak(currentStreak)
@@ -114,16 +114,16 @@ public class ProgressReportService {
                 .build();
     }
 
-    public TherapistConclusion addConclusion(Long patientId, ConclusionRequest request) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+    public OrientadorNota addConclusion(Long estudianteId, ConclusionRequest request) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
-        Professional professional = professionalRepository.findById(request.getProfessionalId())
-                .orElseThrow(() -> new ResourceNotFoundException("Profesional", request.getProfessionalId()));
+        Orientador orientador = orientadorRepository.findById(request.getOrientadorId())
+                .orElseThrow(() -> new ResourceNotFoundException("Orientador", request.getOrientadorId()));
 
-        TherapistConclusion conclusion = TherapistConclusion.builder()
-                .patient(patient)
-                .professional(professional)
+        OrientadorNota conclusion = OrientadorNota.builder()
+                .estudiante(estudiante)
+                .orientador(orientador)
                 .content(request.getContent())
                 .build();
 

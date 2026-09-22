@@ -1,4 +1,4 @@
-package com.wellness.backend.exception;
+package com.compa.exception;
 
 public class BusinessException extends RuntimeException {
     public BusinessException(String message) {

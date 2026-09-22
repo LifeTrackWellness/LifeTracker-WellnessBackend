@@ -1,7 +1,7 @@
-package com.wellness.backend.repository;
+package com.compa.repository;
 
-import com.wellness.backend.model.HabitPlan;
-import com.wellness.backend.model.PlanRule;
+import com.compa.model.HabitPlan;
+import com.compa.model.PlanRule;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

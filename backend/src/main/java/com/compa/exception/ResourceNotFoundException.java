@@ -1,4 +1,4 @@
-package com.wellness.backend.exception;
+package com.compa.exception;
 
 public class ResourceNotFoundException extends RuntimeException {
     public ResourceNotFoundException(String message) {

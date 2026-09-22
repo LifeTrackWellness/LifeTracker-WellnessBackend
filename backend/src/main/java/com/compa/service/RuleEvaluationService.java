@@ -1,9 +1,9 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
-import com.wellness.backend.enums.AlertType;
-import com.wellness.backend.enums.PlanStatus;
-import com.wellness.backend.model.*;
-import com.wellness.backend.repository.*;
+import com.compa.enums.AlertType;
+import com.compa.enums.PlanStatus;
+import com.compa.model.*;
+import com.compa.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class RuleEvaluationService {
     private final PlanRuleRepository planRuleRepository;
     private final RuleEvaluationLogRepository evaluationLogRepository;
     private final HabitPlanRepository habitPlanRepository;
-    private final PatientRepository patientRepository;
+    private final EstudianteRepository estudianteRepository;
     private final AdherenceSnapshotRepository snapshotRepository;
     private final AlertService alertService;
 
@@ -28,27 +28,27 @@ public class RuleEvaluationService {
             PlanRuleRepository planRuleRepository,
             RuleEvaluationLogRepository evaluationLogRepository,
             HabitPlanRepository habitPlanRepository,
-            PatientRepository patientRepository,
+            EstudianteRepository estudianteRepository,
             AdherenceSnapshotRepository snapshotRepository,
             @Lazy AlertService alertService) {
         this.planRuleRepository = planRuleRepository;
         this.evaluationLogRepository = evaluationLogRepository;
         this.habitPlanRepository = habitPlanRepository;
-        this.patientRepository = patientRepository;
+        this.estudianteRepository = estudianteRepository;
         this.snapshotRepository = snapshotRepository;
         this.alertService = alertService;
     }
 
     @Transactional
-    public void evaluateRulesForPatient(Long patientId) {
-        Patient patient = patientRepository.findById(patientId).orElse(null);
-        if (patient == null) return;
+    public void evaluateRulesForEstudiante(Long estudianteId) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId).orElse(null);
+        if (estudiante == null) return;
 
         HabitPlan activePlan = habitPlanRepository
-                .findByPatientIdAndStatus(patientId, PlanStatus.ACTIVO)
+                .findByEstudianteIdAndStatus(estudianteId, PlanStatus.ACTIVO)
                 .orElse(null);
         if (activePlan == null) {
-            log.info("Paciente {} no tiene plan activo — sin evaluación de reglas", patientId);
+            log.info("Estudiante {} no tiene plan activo — sin evaluación de reglas", estudianteId);
             return;
         }
 
@@ -66,11 +66,11 @@ public class RuleEvaluationService {
         LocalDate today = LocalDate.now(ZoneId.of("America/Bogota"));
 
         AdherenceSnapshot snapshot = snapshotRepository
-                .findByPatientAndSnapshotDate(patient, today)
+                .findByEstudianteAndSnapshotDate(estudiante, today)
                 .orElse(null);
 
         if (snapshot == null) {
-            log.info("No hay snapshot de adherencia para paciente {} hoy — sin evaluación", patientId);
+            log.info("No hay snapshot de adherencia para estudiante {} hoy — sin evaluación", estudianteId);
             return;
         }
 
@@ -78,11 +78,11 @@ public class RuleEvaluationService {
 
         for (PlanRule rule : activeRules) {
             boolean alreadyEvaluated = evaluationLogRepository
-                    .existsByPlanRuleIdAndPatientIdAndEvaluationDate(
-                            rule.getId(), patientId, today);
+                    .existsByPlanRuleIdAndEstudianteIdAndEvaluationDate(
+                            rule.getId(), estudianteId, today);
 
             if (alreadyEvaluated) {
-                log.info("Regla {} ya evaluada hoy para paciente {}", rule.getId(), patientId);
+                log.info("Regla {} ya evaluada hoy para estudiante {}", rule.getId(), estudianteId);
                 continue;
             }
 
@@ -94,25 +94,25 @@ public class RuleEvaluationService {
 
             RuleEvaluationLog evalLog = new RuleEvaluationLog();
             evalLog.setPlanRule(rule);
-            evalLog.setPatient(patient);
+            evalLog.setEstudiante(estudiante);
             evalLog.setEvaluationDate(today);
             evalLog.setTriggered(triggered);
             evalLog.setComplianceValue(weeklyCompliance);
             evaluationLogRepository.save(evalLog);
 
             if (triggered) {
-                log.warn("🔴 Regla DISPARADA — Paciente: {}, Regla: '{}', Adherencia: {}% < Umbral: {}%",
-                        patientId, rule.getRuleTemplate().getName(), weeklyCompliance, umbral);
+                log.warn("🔴 Regla DISPARADA — Estudiante: {}, Regla: '{}', Adherencia: {}% < Umbral: {}%",
+                        estudianteId, rule.getRuleTemplate().getName(), weeklyCompliance, umbral);
 
                 alertService.createAlertIfNotExists(
-                        patientId,
+                        estudianteId,
                         AlertType.RIESGO_ALTO,
                         "Regla disparada: '" + rule.getRuleTemplate().getName() +
                                 "' — Adherencia semanal: " + weeklyCompliance + "%"
                 );
             } else {
-                log.info("✅ Regla NO disparada — Paciente: {}, Regla: '{}', Adherencia: {}%",
-                        patientId, rule.getRuleTemplate().getName(), weeklyCompliance);
+                log.info("✅ Regla NO disparada — Estudiante: {}, Regla: '{}', Adherencia: {}%",
+                        estudianteId, rule.getRuleTemplate().getName(), weeklyCompliance);
             }
         }
     }

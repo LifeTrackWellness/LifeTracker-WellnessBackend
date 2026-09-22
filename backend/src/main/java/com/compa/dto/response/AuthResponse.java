@@ -1,4 +1,4 @@
-package com.wellness.backend.dto.response;
+package com.compa.dto.response;
 
 
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package com.wellness.backend.enums;
+package com.compa.enums;
 
 public enum RiskLevel {
     VERDE, AMARILLO, ROJO;

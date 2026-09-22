@@ -1,10 +1,10 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.wellness.backend.enums.RiskLevel;
+import com.compa.enums.RiskLevel;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,9 +31,9 @@ public class RiskLevelHistory {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id", nullable = false)
+    @JoinColumn(name = "estudiante_id", nullable = false)
     @JsonIgnore
-    private Patient patient;
+    private Estudiante estudiante;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "risk_level", nullable = false)

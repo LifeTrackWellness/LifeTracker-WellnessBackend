@@ -1,4 +1,4 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
 import sendinblue.ApiException;
 import sendinblue.Configuration;
@@ -26,29 +26,29 @@ public class EmailService {
     private String brevoApiKey;
 
     private static final String FROM_EMAIL = "lifetrackwellness@gmail.com";
-    private static final String FROM_NAME = "LifeTracker Wellness";
+    private static final String FROM_NAME = "COMPA - Acompañamiento estudiantil";
 
     @Async
     public void sendVerificationEmail(String toEmail, String name, String verificationToken) {
         String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
         String body =
                 "Hola " + name + ",\n\n" +
-                        "Gracias por registrarte en LifeTracker Wellness.\n\n" +
+                        "Gracias por registrarte en COMPA.\n\n" +
                         "Confirma tu cuenta haciendo clic aquí:\n" +
                         verificationLink + "\n\n" +
                         "Este enlace vence en 24 horas.\n\n" +
                         "Si no creaste esta cuenta, ignora este mensaje.\n\n" +
-                        "Equipo LifeTracker Wellness";
-        send(toEmail, name, "Confirma tu cuenta en LifeTracker Wellness", body);
+                        "Equipo COMPA";
+        send(toEmail, name, "Confirma tu cuenta en COMPA", body);
     }
 
     @Async
-    public void sendPatientCredentials(String toEmail, String name,
+    public void sendEstudianteCredentials(String toEmail, String name,
                                        String tempPassword, String activationToken) {
         String activationLink = frontendUrl + "/activate?token=" + activationToken;
         String body =
                 "Hola " + name + ",\n\n" +
-                        "Tu profesional te ha registrado en LifeTracker Wellness.\n\n" +
+                        "Tu orientador te ha registrado en COMPA.\n\n" +
                         "Tus credenciales temporales son:\n" +
                         "- Email: " + toEmail + "\n" +
                         "- Contraseña temporal: " + tempPassword + "\n\n" +
@@ -57,20 +57,20 @@ public class EmailService {
                         "Este enlace vence en 48 horas.\n\n" +
                         "Una vez activada tu cuenta podrás cambiar tu contraseña.\n\n" +
                         "Si no esperabas este mensaje, ignóralo.\n\n" +
-                        "Equipo LifeTracker Wellness";
-        send(toEmail, name, "Bienvenido a LifeTracker Wellness - Tus credenciales de acceso", body);
+                        "Equipo COMPA";
+        send(toEmail, name, "Bienvenido a COMPA - Tus credenciales de acceso", body);
     }
 
     @Async
-    public void sendRiskAlertEmail(String toEmail, String professionalName,
-                                   String patientName, String description) {
+    public void sendRiskAlertEmail(String toEmail, String orientadorName,
+                                   String estudianteName, String description) {
         String body =
-                "Hola " + professionalName + ",\n\n" +
-                        "Tu paciente " + patientName + " ha sido identificado en nivel de riesgo ALTO.\n\n" +
+                "Hola " + orientadorName + ",\n\n" +
+                        "Tu estudiante " + estudianteName + " ha sido identificado en nivel de riesgo ALTO.\n\n" +
                         "Descripción: " + description + "\n\n" +
                         "Te recomendamos revisar su estado lo antes posible en la plataforma.\n\n" +
-                        "Equipo LifeTracker Wellness";
-        send(toEmail, professionalName, "⚠️ Alerta de riesgo alto — " + patientName, body);
+                        "Equipo COMPA";
+        send(toEmail, orientadorName, "⚠️ Alerta de riesgo alto — " + estudianteName, body);
     }
 
     private void send(String toEmail, String toName, String subject, String body) {

@@ -1,11 +1,11 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
-import com.wellness.backend.model.ConsentTemplate;
-import com.wellness.backend.model.Patient;
-import com.wellness.backend.model.PatientConsent;
-import com.wellness.backend.repository.ConsentTemplateRepository;
-import com.wellness.backend.repository.PatientConsentRepository;
-import com.wellness.backend.repository.PatientRepository;
+import com.compa.model.ConsentTemplate;
+import com.compa.model.Estudiante;
+import com.compa.model.EstudianteConsent;
+import com.compa.repository.ConsentTemplateRepository;
+import com.compa.repository.EstudianteConsentRepository;
+import com.compa.repository.EstudianteRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -14,56 +14,56 @@ import java.util.List;
 
 @Service
 public class ConsentService {
-    private final PatientConsentRepository patientConsentRepository;
+    private final EstudianteConsentRepository estudianteConsentRepository;
     private final ConsentTemplateRepository consentTemplateRepository;
-    private final PatientRepository patientRepository;
+    private final EstudianteRepository estudianteRepository;
 
-    public ConsentService(PatientConsentRepository patientConsentRepository,
+    public ConsentService(EstudianteConsentRepository estudianteConsentRepository,
             ConsentTemplateRepository consentTemplateRepository,
-            PatientRepository patientRepository) {
-        this.patientConsentRepository = patientConsentRepository;
+            EstudianteRepository estudianteRepository) {
+        this.estudianteConsentRepository = estudianteConsentRepository;
         this.consentTemplateRepository = consentTemplateRepository;
-        this.patientRepository = patientRepository;
+        this.estudianteRepository = estudianteRepository;
     }
 
     @Transactional
-    public void generateConsentsForPatient(Patient patient) {
+    public void generateConsentsForEstudiante(Estudiante estudiante) {
         List<ConsentTemplate> templates = consentTemplateRepository.findAll();
-        List<PatientConsent> consents = new ArrayList<>();
+        List<EstudianteConsent> consents = new ArrayList<>();
         for (ConsentTemplate template : templates) {
-            PatientConsent consent = new PatientConsent();
-            consent.setPatient(patient);
+            EstudianteConsent consent = new EstudianteConsent();
+            consent.setEstudiante(estudiante);
             consent.setConsentTemplate(template);
             consent.setAceptado(false);
             consent.setFechaAceptacion(null);
             consents.add(consent);
         }
-        patientConsentRepository.saveAll(consents);
+        estudianteConsentRepository.saveAll(consents);
     }
 
     @Transactional(readOnly = true)
-    public List<PatientConsent> getConsentsByPatient(Long patientId) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new RuntimeException("Paciente no encontrado: " + patientId));
-        return patientConsentRepository.findByPatient(patient);
+    public List<EstudianteConsent> getConsentsByEstudiante(Long estudianteId) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new RuntimeException("Estudiante no encontrado: " + estudianteId));
+        return estudianteConsentRepository.findByEstudiante(estudiante);
     }
 
     @Transactional(readOnly = true)
-    public boolean hasPendingConsents(Long patientId) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new RuntimeException("Paciente no encontrado: " + patientId));
-        List<PatientConsent> pending = patientConsentRepository
-                .findByPatientAndAceptado(patient, false);
+    public boolean hasPendingConsents(Long estudianteId) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new RuntimeException("Estudiante no encontrado: " + estudianteId));
+        List<EstudianteConsent> pending = estudianteConsentRepository
+                .findByEstudianteAndAceptado(estudiante, false);
         return !pending.isEmpty();
     }
 
     @Transactional
-    public PatientConsent acceptConsent(Long consentId) {
-        PatientConsent consent = patientConsentRepository.findById(consentId)
+    public EstudianteConsent acceptConsent(Long consentId) {
+        EstudianteConsent consent = estudianteConsentRepository.findById(consentId)
                 .orElseThrow(() -> new RuntimeException("Consentimiento no encontrado: " + consentId));
         consent.setAceptado(true);
         consent.setFechaAceptacion(LocalDateTime.now());
-        return patientConsentRepository.save(consent);
+        return estudianteConsentRepository.save(consent);
     }
 
 }

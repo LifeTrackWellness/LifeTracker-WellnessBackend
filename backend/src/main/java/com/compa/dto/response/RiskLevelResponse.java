@@ -1,13 +1,13 @@
-package com.wellness.backend.dto.response;
+package com.compa.dto.response;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.wellness.backend.enums.RiskLevel;
+import com.compa.enums.RiskLevel;
 
 public class RiskLevelResponse {
-    private Long patientId;
-    private String patientName;
+    private Long estudianteId;
+    private String estudianteName;
     private RiskLevel riskLevel;
     private String riskLevelDisplay;
     private String riskLevelDescription;
@@ -22,13 +22,13 @@ public class RiskLevelResponse {
     public static class Builder {
         private final RiskLevelResponse obj = new RiskLevelResponse();
 
-        public Builder patientId(Long v) {
-            obj.patientId = v;
+        public Builder estudianteId(Long v) {
+            obj.estudianteId = v;
             return this;
         }
 
-        public Builder patientName(String v) {
-            obj.patientName = v;
+        public Builder estudianteName(String v) {
+            obj.estudianteName = v;
             return this;
         }
 
@@ -67,12 +67,12 @@ public class RiskLevelResponse {
         }
     }
 
-    public Long getPatientId() {
-        return patientId;
+    public Long getEstudianteId() {
+        return estudianteId;
     }
 
-    public String getPatientName() {
-        return patientName;
+    public String getEstudianteName() {
+        return estudianteName;
     }
 
     public RiskLevel getRiskLevel() {

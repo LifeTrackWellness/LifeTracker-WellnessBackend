@@ -1,16 +1,16 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
-import com.wellness.backend.dto.request.ClinicalInfoRequest;
-import com.wellness.backend.dto.request.HealthStatusUpdateRequest;
-import com.wellness.backend.enums.HealthStatus;
-import com.wellness.backend.exception.BusinessException;
-import com.wellness.backend.exception.ResourceNotFoundException;
-import com.wellness.backend.model.ClinicalInfo;
-import com.wellness.backend.model.HealthStatusHistory;
-import com.wellness.backend.model.Patient;
-import com.wellness.backend.repository.ClinicalInfoRepository;
-import com.wellness.backend.repository.HealthStatusHistoryRepository;
-import com.wellness.backend.repository.PatientRepository;
+import com.compa.dto.request.ClinicalInfoRequest;
+import com.compa.dto.request.HealthStatusUpdateRequest;
+import com.compa.enums.HealthStatus;
+import com.compa.exception.BusinessException;
+import com.compa.exception.ResourceNotFoundException;
+import com.compa.model.ClinicalInfo;
+import com.compa.model.HealthStatusHistory;
+import com.compa.model.Estudiante;
+import com.compa.repository.ClinicalInfoRepository;
+import com.compa.repository.HealthStatusHistoryRepository;
+import com.compa.repository.EstudianteRepository;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
@@ -28,24 +28,24 @@ public class ClinicalInfoService {
 
     private final ClinicalInfoRepository clinicalInfoRepository;
     private final HealthStatusHistoryRepository historyRepository;
-    private final PatientRepository patientRepository;
+    private final EstudianteRepository estudianteRepository;
 
     public ClinicalInfoService(ClinicalInfoRepository clinicalInfoRepository,
-            HealthStatusHistoryRepository historyRepository, PatientRepository patientRepository) {
+            HealthStatusHistoryRepository historyRepository, EstudianteRepository estudianteRepository) {
         this.clinicalInfoRepository = clinicalInfoRepository;
         this.historyRepository = historyRepository;
-        this.patientRepository = patientRepository;
+        this.estudianteRepository = estudianteRepository;
     }
 
     @Transactional
-    public ClinicalInfo registerClinicalInfo(Long patientId, ClinicalInfoRequest request) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
-        if (clinicalInfoRepository.existsByPatientId(patientId)) {
-            throw new BusinessException("El paciente ya tiene informacion clinica registrada.");
+    public ClinicalInfo registerClinicalInfo(Long estudianteId, ClinicalInfoRequest request) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
+        if (clinicalInfoRepository.existsByEstudianteId(estudianteId)) {
+            throw new BusinessException("El estudiante ya tiene informacion clinica registrada.");
         }
         ClinicalInfo clinicalInfo = new ClinicalInfo();
-        clinicalInfo.setPatient(patient);
+        clinicalInfo.setEstudiante(estudiante);
         clinicalInfo.setMainCondition(request.getMainCondition());
         clinicalInfo.setSecondaryConditions(request.getSecondaryConditions());
         clinicalInfo.setHealthStatus(request.getHealthStatus());
@@ -62,10 +62,10 @@ public class ClinicalInfoService {
     }
 
     @Transactional
-    public ClinicalInfo updateClinicalInfo(Long patientId, ClinicalInfoRequest request) {
-        ClinicalInfo clinicalInfo = clinicalInfoRepository.findByPatientId(patientId)
+    public ClinicalInfo updateClinicalInfo(Long estudianteId, ClinicalInfoRequest request) {
+        ClinicalInfo clinicalInfo = clinicalInfoRepository.findByEstudianteId(estudianteId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Informacion clinica para paciente con id " + patientId + " no encontrada"));
+                        "Informacion clinica para estudiante con id " + estudianteId + " no encontrada"));
         HealthStatus previousStatus = clinicalInfo.getHealthStatus();
         clinicalInfo.setMainCondition(request.getMainCondition());
         clinicalInfo.setSecondaryConditions(request.getSecondaryConditions());
@@ -82,10 +82,10 @@ public class ClinicalInfoService {
     }
 
     @Transactional
-    public ClinicalInfo updateHealthStatus(Long patientId, HealthStatusUpdateRequest request) {
-        ClinicalInfo clinicalInfo = clinicalInfoRepository.findByPatientId(patientId)
+    public ClinicalInfo updateHealthStatus(Long estudianteId, HealthStatusUpdateRequest request) {
+        ClinicalInfo clinicalInfo = clinicalInfoRepository.findByEstudianteId(estudianteId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Informacion clinica para paciente con id " + patientId + " no encontrada"));
+                        "Informacion clinica para estudiante con id " + estudianteId + " no encontrada"));
         HealthStatus previousStatus = clinicalInfo.getHealthStatus();
         if (previousStatus.equals(request.getNewStatus())) {
             throw new BusinessException(
@@ -102,16 +102,16 @@ public class ClinicalInfoService {
     }
 
     @Transactional(readOnly = true)
-    public ClinicalInfo getClinicalInfo(Long patientId) {
-        return clinicalInfoRepository.findByPatientId(patientId).orElseThrow(() -> new ResourceNotFoundException(
-                "Informacion clinica para paciente con id " + patientId + " no encontrada"));
+    public ClinicalInfo getClinicalInfo(Long estudianteId) {
+        return clinicalInfoRepository.findByEstudianteId(estudianteId).orElseThrow(() -> new ResourceNotFoundException(
+                "Informacion clinica para estudiante con id " + estudianteId + " no encontrada"));
     }
 
     @Transactional(readOnly = true)
-    public List<HealthStatusHistory> getStatusHistory(Long patientId) {
-        ClinicalInfo clinicalInfo = clinicalInfoRepository.findByPatientId(patientId)
+    public List<HealthStatusHistory> getStatusHistory(Long estudianteId) {
+        ClinicalInfo clinicalInfo = clinicalInfoRepository.findByEstudianteId(estudianteId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Informacion clinica para paciente con id " + patientId + " no encontrada"));
+                        "Informacion clinica para estudiante con id " + estudianteId + " no encontrada"));
         return historyRepository.findByClinicalInfoIdOrderByChangedAtDesc(clinicalInfo.getId());
     }
 

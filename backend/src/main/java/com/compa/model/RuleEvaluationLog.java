@@ -1,4 +1,4 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -24,10 +24,10 @@ public class RuleEvaluationLog {
     private PlanRule planRule;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "patient_id", nullable = false)
+    @JoinColumn(name = "estudiante_id", nullable = false)
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "password", "tempPassword",
-            "activationToken", "professional", "consents" })
-    private Patient patient;
+            "activationToken", "orientador", "consents" })
+    private Estudiante estudiante;
 
     @Column(name = "evaluation_date", nullable = false)
     private LocalDate evaluationDate;

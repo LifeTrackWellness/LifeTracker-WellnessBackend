@@ -1,6 +1,6 @@
-package com.wellness.backend.dto.response;
+package com.compa.dto.response;
 
-import com.wellness.backend.enums.EmotionalState;
+import com.compa.enums.EmotionalState;
 
 import java.time.LocalDate;
 

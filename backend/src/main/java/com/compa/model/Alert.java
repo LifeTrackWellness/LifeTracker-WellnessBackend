@@ -1,8 +1,8 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 
-import com.wellness.backend.enums.AlertStatus;
-import com.wellness.backend.enums.AlertType;
+import com.compa.enums.AlertStatus;
+import com.compa.enums.AlertType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,12 +25,12 @@ public class Alert {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id", nullable = false)
-    private Patient patient;
+    @JoinColumn(name = "estudiante_id", nullable = false)
+    private Estudiante estudiante;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "professional_id", nullable = false)
-    private Professional professional;
+    @JoinColumn(name = "orientador_id", nullable = false)
+    private Orientador orientador;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

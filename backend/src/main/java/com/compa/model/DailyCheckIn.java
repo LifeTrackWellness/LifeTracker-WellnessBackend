@@ -1,7 +1,7 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.wellness.backend.enums.EmotionalState;
+import com.compa.enums.EmotionalState;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,9 +21,9 @@ public class DailyCheckIn {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id", nullable = false)
+    @JoinColumn(name = "estudiante_id", nullable = false)
     @JsonIgnore
-    private Patient patient;
+    private Estudiante estudiante;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "emotional_state", nullable = false)

@@ -1,6 +1,6 @@
-package com.wellness.backend.dto.request;
+package com.compa.dto.request;
 
-import com.wellness.backend.enums.TaskBarrier;
+import com.compa.enums.TaskBarrier;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 

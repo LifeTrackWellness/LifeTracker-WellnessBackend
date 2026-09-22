@@ -1,4 +1,4 @@
-package com.wellness.backend.config;
+package com.compa.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -29,8 +29,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        // El paciente activa su cuenta desde el link del email sin estar autenticado
-                        .requestMatchers(HttpMethod.POST, "/api/patients/activate").permitAll()
+                        // El estudiante activa su cuenta desde el link del email sin estar autenticado
+                        .requestMatchers(HttpMethod.POST, "/api/estudiantes/activate").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

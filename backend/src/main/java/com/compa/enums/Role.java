@@ -1,7 +1,7 @@
-package com.wellness.backend.enums;
+package com.compa.enums;
 
 public enum Role
 {
-    PROFESSIONAL,
-    PATIENT
+    ORIENTADOR,
+    ESTUDIANTE
 }

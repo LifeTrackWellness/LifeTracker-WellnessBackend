@@ -1,6 +1,6 @@
-package com.wellness.backend.dto.request;
+package com.compa.dto.request;
 
-import com.wellness.backend.enums.TaskPriority;
+import com.compa.enums.TaskPriority;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 

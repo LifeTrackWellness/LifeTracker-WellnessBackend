@@ -1,16 +1,16 @@
-package com.wellness.backend.repository;
+package com.compa.repository;
 
-import com.wellness.backend.model.ConsentTemplate;
-import com.wellness.backend.model.Patient;
-import com.wellness.backend.model.PatientConsent;
+import com.compa.model.ConsentTemplate;
+import com.compa.model.Estudiante;
+import com.compa.model.EstudianteConsent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface PatientConsentRepository extends JpaRepository<PatientConsent, Long>
+public interface EstudianteConsentRepository extends JpaRepository<EstudianteConsent, Long>
 {
-    List<PatientConsent> findByPatient(Patient patient);
-    List<PatientConsent> findByPatientAndAceptado(Patient patient, boolean aceptado);
+    List<EstudianteConsent> findByEstudiante(Estudiante estudiante);
+    List<EstudianteConsent> findByEstudianteAndAceptado(Estudiante estudiante, boolean aceptado);
 }

@@ -1,36 +1,36 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.wellness.backend.enums.AlertType;
+import com.compa.enums.AlertType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.wellness.backend.dto.response.RiskLevelHistoryResponse;
-import com.wellness.backend.dto.response.RiskLevelResponse;
-import com.wellness.backend.enums.PatientStatus;
-import com.wellness.backend.enums.PlanStatus;
-import com.wellness.backend.enums.RiskLevel;
-import com.wellness.backend.exception.ResourceNotFoundException;
-import com.wellness.backend.model.DailyCheckIn;
-import com.wellness.backend.model.Patient;
-import com.wellness.backend.model.RiskLevelHistory;
-import com.wellness.backend.model.TaskCheckIn;
-import com.wellness.backend.repository.DailyCheckInRepository;
-import com.wellness.backend.repository.HabitPlanRepository;
-import com.wellness.backend.repository.HabitTaskRepository;
-import com.wellness.backend.repository.PatientRepository;
-import com.wellness.backend.repository.RiskLevelHistoryRepository;
-import com.wellness.backend.repository.TaskCheckInRepository;
+import com.compa.dto.response.RiskLevelHistoryResponse;
+import com.compa.dto.response.RiskLevelResponse;
+import com.compa.enums.EstudianteStatus;
+import com.compa.enums.PlanStatus;
+import com.compa.enums.RiskLevel;
+import com.compa.exception.ResourceNotFoundException;
+import com.compa.model.DailyCheckIn;
+import com.compa.model.Estudiante;
+import com.compa.model.RiskLevelHistory;
+import com.compa.model.TaskCheckIn;
+import com.compa.repository.DailyCheckInRepository;
+import com.compa.repository.HabitPlanRepository;
+import com.compa.repository.HabitTaskRepository;
+import com.compa.repository.EstudianteRepository;
+import com.compa.repository.RiskLevelHistoryRepository;
+import com.compa.repository.TaskCheckInRepository;
 import org.springframework.context.annotation.Lazy;
 
 
 @Service
 public class RiskLevelService {
-    private final PatientRepository patientRepository;
+    private final EstudianteRepository estudianteRepository;
     private final HabitPlanRepository habitPlanRepository;
     private final HabitTaskRepository habitTaskRepository;
     private final DailyCheckInRepository checkInRepository;
@@ -38,14 +38,14 @@ public class RiskLevelService {
     private final RiskLevelHistoryRepository riskLevelHistoryRepository;
     private final AlertService alertService;
 
-    public RiskLevelService(PatientRepository patientRepository,
+    public RiskLevelService(EstudianteRepository estudianteRepository,
                             HabitPlanRepository habitPlanRepository,
                             HabitTaskRepository habitTaskRepository,
                             DailyCheckInRepository checkInRepository,
                             TaskCheckInRepository taskCheckInRepository,
                             RiskLevelHistoryRepository riskLevelHistoryRepository,
                             @Lazy AlertService alertService) {    // ← agregar @Lazy aquí
-        this.patientRepository = patientRepository;
+        this.estudianteRepository = estudianteRepository;
         this.habitPlanRepository = habitPlanRepository;
         this.habitTaskRepository = habitTaskRepository;
         this.checkInRepository = checkInRepository;
@@ -54,17 +54,17 @@ public class RiskLevelService {
         this.alertService = alertService;
     }
 
-    // Calcular y guardar nivel de riesgo de un paciente específico
+    // Calcular y guardar nivel de riesgo de un estudiante específico
     @Transactional
-    public RiskLevelResponse evaluatePatient(Long patientId) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+    public RiskLevelResponse evaluateEstudiante(Long estudianteId) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
-        double compliance = calculateWeeklyCompliance(patientId);
+        double compliance = calculateWeeklyCompliance(estudianteId);
         RiskLevel riskLevel = determineRiskLevel(compliance);
 
         RiskLevel previousRiskLevel = riskLevelHistoryRepository
-                .findTopByPatientIdOrderByEvaluatedDateDesc(patientId)
+                .findTopByEstudianteIdOrderByEvaluatedDateDesc(estudianteId)
                 .map(RiskLevelHistory::getRiskLevel)
                 .orElse(null);
 
@@ -72,10 +72,10 @@ public class RiskLevelService {
 
         // Si ya fue evaluado hoy, actualiza el registro
         RiskLevelHistory history = riskLevelHistoryRepository
-                .findByPatientIdAndEvaluatedDate(patientId, today)
+                .findByEstudianteIdAndEvaluatedDate(estudianteId, today)
                 .orElse(new RiskLevelHistory());
 
-        history.setPatient(patient);
+        history.setEstudiante(estudiante);
         history.setRiskLevel(riskLevel);
         history.setPreviousRiskLevel(previousRiskLevel);
         history.setCompliancePercentage(compliance);
@@ -85,83 +85,83 @@ public class RiskLevelService {
         // Generar alerta si el nivel es ROJO o AMARILLO
         if (riskLevel == RiskLevel.ROJO) {
             alertService.createAlertIfNotExists(
-                    patientId,
+                    estudianteId,
                     AlertType.RIESGO_ALTO,
-                    "El paciente " + patient.getName() + " " + patient.getLastName() +
+                    "El estudiante " + estudiante.getName() + " " + estudiante.getLastName() +
                             " tiene un cumplimiento del " + compliance + "% esta semana."
             );
         } else if (riskLevel == RiskLevel.AMARILLO) {
             alertService.createAlertIfNotExists(
-                    patientId,
+                    estudianteId,
                     AlertType.RIESGO_MEDIO,
-                    "El paciente " + patient.getName() + " " + patient.getLastName() +
+                    "El estudiante " + estudiante.getName() + " " + estudiante.getLastName() +
                             " tiene un cumplimiento del " + compliance + "% esta semana."
             );
         }
 
-        return toResponse(patient, history);
+        return toResponse(estudiante, history);
     }
 
-    // Obtener nivel de riesgo actual de un paciente
+    // Obtener nivel de riesgo actual de un estudiante
     @Transactional(readOnly = true)
-    public RiskLevelResponse getCurrentRiskLevel(Long patientId) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+    public RiskLevelResponse getCurrentRiskLevel(Long estudianteId) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
         return riskLevelHistoryRepository
-                .findTopByPatientIdOrderByEvaluatedDateDesc(patientId)
-                .map(h -> toResponse(patient, h))
+                .findTopByEstudianteIdOrderByEvaluatedDateDesc(estudianteId)
+                .map(h -> toResponse(estudiante, h))
                 .orElseGet(() -> {
                     // Si no hay historial, calcula en tiempo real sin guardar
-                    double compliance = calculateWeeklyCompliance(patientId);
+                    double compliance = calculateWeeklyCompliance(estudianteId);
                     RiskLevel riskLevel = determineRiskLevel(compliance);
                     RiskLevelHistory temp = new RiskLevelHistory();
                     temp.setRiskLevel(riskLevel);
                     temp.setCompliancePercentage(compliance);
                     temp.setEvaluatedDate(LocalDate.now(java.time.ZoneId.of("America/Bogota")));
-                    return toResponse(patient, temp);
+                    return toResponse(estudiante, temp);
                 });
     }
 
-    // Obtener historial de niveles de riesgo de un paciente
+    // Obtener historial de niveles de riesgo de un estudiante
     @Transactional(readOnly = true)
-    public List<RiskLevelHistoryResponse> getRiskLevelHistory(Long patientId) {
-        patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+    public List<RiskLevelHistoryResponse> getRiskLevelHistory(Long estudianteId) {
+        estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
         return riskLevelHistoryRepository
-                .findByPatientIdOrderByEvaluatedDateDesc(patientId)
+                .findByEstudianteIdOrderByEvaluatedDateDesc(estudianteId)
                 .stream()
                 .map(this::toHistoryResponse)
                 .collect(Collectors.toList());
     }
 
-    // Evaluar todos los pacientes activos (para ejecutar diariamente)
+    // Evaluar todos los estudiantes activos (para ejecutar diariamente)
     @Transactional
-    public List<RiskLevelResponse> evaluateAllActivePatients() {
-        List<Patient> activePatients = patientRepository.findByStatus(PatientStatus.ACTIVO);
+    public List<RiskLevelResponse> evaluateAllActiveEstudiantes() {
+        List<Estudiante> activeEstudiantes = estudianteRepository.findByStatus(EstudianteStatus.ACTIVO);
         List<RiskLevelResponse> results = new ArrayList<>();
-        for (Patient patient : activePatients) {
-            results.add(evaluatePatient(patient.getId()));
+        for (Estudiante estudiante : activeEstudiantes) {
+            results.add(evaluateEstudiante(estudiante.getId()));
         }
         return results;
     }
 
-    // Obtener todos los pacientes activos con su nivel de riesgo actual
+    // Obtener todos los estudiantes activos con su nivel de riesgo actual
     @Transactional(readOnly = true)
-    public List<RiskLevelResponse> getAllPatientsRiskLevel() {
-        List<Patient> activePatients = patientRepository.findByStatus(PatientStatus.ACTIVO);
-        return activePatients.stream()
+    public List<RiskLevelResponse> getAllEstudiantesRiskLevel() {
+        List<Estudiante> activeEstudiantes = estudianteRepository.findByStatus(EstudianteStatus.ACTIVO);
+        return activeEstudiantes.stream()
                 .map(p -> getCurrentRiskLevel(p.getId()))
                 .collect(Collectors.toList());
     }
 
     // --- Lógica de cálculo ---
 
-    private double calculateWeeklyCompliance(Long patientId) {
+    private double calculateWeeklyCompliance(Long estudianteId) {
         // Obtener plan activo
         var activePlan = habitPlanRepository
-                .findByPatientIdAndStatus(patientId, PlanStatus.ACTIVO)
+                .findByEstudianteIdAndStatus(estudianteId, PlanStatus.ACTIVO)
                 .orElse(null);
 
         if (activePlan == null)
@@ -177,7 +177,7 @@ public class RiskLevelService {
         LocalDate weekAgo = today.minusDays(6);
 
         List<DailyCheckIn> checkIns = checkInRepository
-                .findByPatientIdOrderByCheckInDateDesc(patientId)
+                .findByEstudianteIdOrderByCheckInDateDesc(estudianteId)
                 .stream()
                 .filter(c -> !c.getCheckInDate().isBefore(weekAgo) && !c.getCheckInDate().isAfter(today))
                 .collect(Collectors.toList());
@@ -207,10 +207,10 @@ public class RiskLevelService {
 
     // --- Mappers ---
 
-    private RiskLevelResponse toResponse(Patient patient, RiskLevelHistory history) {
+    private RiskLevelResponse toResponse(Estudiante estudiante, RiskLevelHistory history) {
         return RiskLevelResponse.builder()
-                .patientId(patient.getId())
-                .patientName(patient.getName() + " " + patient.getLastName())
+                .estudianteId(estudiante.getId())
+                .estudianteName(estudiante.getName() + " " + estudiante.getLastName())
                 .riskLevel(history.getRiskLevel())
                 .riskLevelDisplay(history.getRiskLevel().getDisplayName())
                 .riskLevelDescription(history.getRiskLevel().getDescription())

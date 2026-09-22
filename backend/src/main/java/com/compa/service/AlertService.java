@@ -1,14 +1,14 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
-import com.wellness.backend.enums.AlertStatus;
-import com.wellness.backend.enums.AlertType;
-import com.wellness.backend.exception.ResourceNotFoundException;
-import com.wellness.backend.model.Alert;
-import com.wellness.backend.model.Patient;
-import com.wellness.backend.model.Professional;
-import com.wellness.backend.repository.AlertRepository;
-import com.wellness.backend.repository.PatientRepository;
-import com.wellness.backend.repository.ProfessionalRepository;
+import com.compa.enums.AlertStatus;
+import com.compa.enums.AlertType;
+import com.compa.exception.ResourceNotFoundException;
+import com.compa.model.Alert;
+import com.compa.model.Estudiante;
+import com.compa.model.Orientador;
+import com.compa.repository.AlertRepository;
+import com.compa.repository.EstudianteRepository;
+import com.compa.repository.OrientadorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,54 +24,54 @@ import java.util.List;
 public class AlertService {
 
     private final AlertRepository alertRepository;
-    private final PatientRepository patientRepository;
-    private final ProfessionalRepository professionalRepository;
+    private final EstudianteRepository estudianteRepository;
+    private final OrientadorRepository orientadorRepository;
     private final EmailService emailService;
 
-    public void createAlertIfNotExists(Long patientId, AlertType type, String description) {
-        log.info(">>> Intentando crear alerta tipo {} para paciente {}", type, patientId);
+    public void createAlertIfNotExists(Long estudianteId, AlertType type, String description) {
+        log.info(">>> Intentando crear alerta tipo {} para estudiante {}", type, estudianteId);
 
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
-        if (patient.getProfessional() == null) {
-            log.warn(">>> Paciente {} no tiene profesional asignado", patientId);
+        if (estudiante.getOrientador() == null) {
+            log.warn(">>> Estudiante {} no tiene orientador asignado", estudianteId);
             return;
         }
 
-        Professional professional = professionalRepository
-                .findById(patient.getProfessional().getId())
+        Orientador orientador = orientadorRepository
+                .findById(estudiante.getOrientador().getId())
                 .orElse(null);
 
-        if (professional == null) {
-            log.warn(">>> Profesional no encontrado para paciente {}", patientId);
+        if (orientador == null) {
+            log.warn(">>> Orientador no encontrado para estudiante {}", estudianteId);
             return;
         }
 
-        boolean alreadyExists = alertRepository.existsByPatientIdAndTypeAndStatus(
-                patientId, type, AlertStatus.PENDIENTE);
+        boolean alreadyExists = alertRepository.existsByEstudianteIdAndTypeAndStatus(
+                estudianteId, type, AlertStatus.PENDIENTE);
 
         log.info(">>> Ya existe alerta? {}", alreadyExists);
 
         if (alreadyExists) return;
 
         Alert alert = Alert.builder()
-                .patient(patient)
-                .professional(professional)
+                .estudiante(estudiante)
+                .orientador(orientador)
                 .type(type)
                 .status(AlertStatus.PENDIENTE)
                 .description(description)
                 .build();
 
         alertRepository.save(alert);
-        log.info(">>> Alerta {} guardada para paciente {}", type, patientId);
+        log.info(">>> Alerta {} guardada para estudiante {}", type, estudianteId);
 
         if (type == AlertType.RIESGO_ALTO) {
             try {
                 emailService.sendRiskAlertEmail(
-                        professional.getEmail(),
-                        professional.getName(),
-                        patient.getName() + " " + patient.getLastName(),
+                        orientador.getEmail(),
+                        orientador.getName(),
+                        estudiante.getName() + " " + estudiante.getLastName(),
                         description
                 );
             } catch (Exception e) {
@@ -81,14 +81,14 @@ public class AlertService {
     }
 
     @Transactional(readOnly = true)
-    public List<Alert> getAlertsByProfessional(Long professionalId) {
-        return alertRepository.findByProfessionalIdOrderByCreatedAtDesc(professionalId);
+    public List<Alert> getAlertsByOrientador(Long orientadorId) {
+        return alertRepository.findByOrientadorIdOrderByCreatedAtDesc(orientadorId);
     }
 
     @Transactional(readOnly = true)
-    public Long getUnreadCount(Long professionalId) {
-        return alertRepository.countByProfessionalIdAndStatus(
-                professionalId, AlertStatus.PENDIENTE);
+    public Long getUnreadCount(Long orientadorId) {
+        return alertRepository.countByOrientadorIdAndStatus(
+                orientadorId, AlertStatus.PENDIENTE);
     }
 
     public Alert resolveAlert(Long alertId) {

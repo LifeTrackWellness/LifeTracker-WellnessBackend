@@ -1,6 +1,6 @@
-package com.wellness.backend.enums;
+package com.compa.enums;
 
-public enum PatientStatus {
+public enum EstudianteStatus {
     ACTIVO, INACTIVO;
 
     public String getDisplayName() {

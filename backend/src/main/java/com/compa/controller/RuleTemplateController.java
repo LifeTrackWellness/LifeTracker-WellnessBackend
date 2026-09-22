@@ -1,9 +1,9 @@
-package com.wellness.backend.controller;
+package com.compa.controller;
 
 
-import com.wellness.backend.model.RuleTemplate;
-import com.wellness.backend.repository.RuleTemplateRepository;
-import com.wellness.backend.service.RuleTemplateService;
+import com.compa.model.RuleTemplate;
+import com.compa.repository.RuleTemplateRepository;
+import com.compa.service.RuleTemplateService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

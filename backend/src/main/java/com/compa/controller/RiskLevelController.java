@@ -1,4 +1,4 @@
-package com.wellness.backend.controller;
+package com.compa.controller;
 
 import java.util.List;
 
@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wellness.backend.dto.response.RiskLevelHistoryResponse;
-import com.wellness.backend.dto.response.RiskLevelResponse;
-import com.wellness.backend.service.RiskLevelService;
+import com.compa.dto.response.RiskLevelHistoryResponse;
+import com.compa.dto.response.RiskLevelResponse;
+import com.compa.service.RiskLevelService;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -22,37 +22,37 @@ public class RiskLevelController {
         this.riskLevelService = riskLevelService;
     }
 
-    // Obtener nivel de riesgo actual de un paciente
-    @GetMapping("/api/patients/{patientId}/risk-level")
+    // Obtener nivel de riesgo actual de un estudiante
+    @GetMapping("/api/estudiantes/{estudianteId}/risk-level")
     public ResponseEntity<RiskLevelResponse> getCurrentRiskLevel(
-            @PathVariable Long patientId) {
-        return ResponseEntity.ok(riskLevelService.getCurrentRiskLevel(patientId));
+            @PathVariable Long estudianteId) {
+        return ResponseEntity.ok(riskLevelService.getCurrentRiskLevel(estudianteId));
     }
 
-    // Evaluar y guardar nivel de riesgo de un paciente
-    @PostMapping("/api/patients/{patientId}/risk-level/evaluate")
-    public ResponseEntity<RiskLevelResponse> evaluatePatient(
-            @PathVariable Long patientId) {
-        return ResponseEntity.ok(riskLevelService.evaluatePatient(patientId));
+    // Evaluar y guardar nivel de riesgo de un estudiante
+    @PostMapping("/api/estudiantes/{estudianteId}/risk-level/evaluate")
+    public ResponseEntity<RiskLevelResponse> evaluateEstudiante(
+            @PathVariable Long estudianteId) {
+        return ResponseEntity.ok(riskLevelService.evaluateEstudiante(estudianteId));
     }
 
-    // Historial de niveles de riesgo de un paciente
-    @GetMapping("/api/patients/{patientId}/risk-level/history")
+    // Historial de niveles de riesgo de un estudiante
+    @GetMapping("/api/estudiantes/{estudianteId}/risk-level/history")
     public ResponseEntity<List<RiskLevelHistoryResponse>> getRiskLevelHistory(
-            @PathVariable Long patientId) {
-        return ResponseEntity.ok(riskLevelService.getRiskLevelHistory(patientId));
+            @PathVariable Long estudianteId) {
+        return ResponseEntity.ok(riskLevelService.getRiskLevelHistory(estudianteId));
     }
 
-    // Evaluar todos los pacientes activos (disparo manual o scheduler)
+    // Evaluar todos los estudiantes activos (disparo manual o scheduler)
     @PostMapping("/api/risk-level/evaluate-all")
-    public ResponseEntity<List<RiskLevelResponse>> evaluateAllPatients() {
-        return ResponseEntity.ok(riskLevelService.evaluateAllActivePatients());
+    public ResponseEntity<List<RiskLevelResponse>> evaluateAllEstudiantes() {
+        return ResponseEntity.ok(riskLevelService.evaluateAllActiveEstudiantes());
     }
 
-    // Ver nivel de riesgo de todos los pacientes activos
+    // Ver nivel de riesgo de todos los estudiantes activos
     @GetMapping("/api/risk-level/all")
-    public ResponseEntity<List<RiskLevelResponse>> getAllPatientsRiskLevel() {
-        return ResponseEntity.ok(riskLevelService.getAllPatientsRiskLevel());
+    public ResponseEntity<List<RiskLevelResponse>> getAllEstudiantesRiskLevel() {
+        return ResponseEntity.ok(riskLevelService.getAllEstudiantesRiskLevel());
     }
 
 }

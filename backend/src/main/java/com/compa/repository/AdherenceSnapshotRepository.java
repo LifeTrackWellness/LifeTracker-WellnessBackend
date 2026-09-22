@@ -1,7 +1,7 @@
-package com.wellness.backend.repository;
+package com.compa.repository;
 
-import com.wellness.backend.model.AdherenceSnapshot;
-import com.wellness.backend.model.Patient;
+import com.compa.model.AdherenceSnapshot;
+import com.compa.model.Estudiante;
 import org.springframework.cglib.core.Local;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,8 +12,8 @@ import java.util.Optional;
 public interface AdherenceSnapshotRepository extends JpaRepository<AdherenceSnapshot, Long>
 
 {
-    Optional<AdherenceSnapshot> findByPatientAndSnapshotDate(Patient patient, LocalDate date);
+    Optional<AdherenceSnapshot> findByEstudianteAndSnapshotDate(Estudiante estudiante, LocalDate date);
 
-    List<AdherenceSnapshot> findByPatientOrderBySnapshotDateDesc(Patient patient);
+    List<AdherenceSnapshot> findByEstudianteOrderBySnapshotDateDesc(Estudiante estudiante);
 
 }

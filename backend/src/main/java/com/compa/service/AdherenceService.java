@@ -1,9 +1,9 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
-import com.wellness.backend.exception.ResourceNotFoundException;
-import com.wellness.backend.model.*;
-import com.wellness.backend.repository.*;
-import com.wellness.backend.enums.PlanStatus;
+import com.compa.exception.ResourceNotFoundException;
+import com.compa.model.*;
+import com.compa.repository.*;
+import com.compa.enums.PlanStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,39 +16,39 @@ public class AdherenceService {
     private final AdherenceSnapshotRepository snapshotRepository;
     private final DailyCheckInRepository checkInRepository;
     private final HabitPlanRepository habitPlanRepository;
-    private final PatientRepository patientRepository;
+    private final EstudianteRepository estudianteRepository;
     private final TaskCheckInRepository taskCheckInRepository;
 
     public AdherenceService(
             AdherenceSnapshotRepository snapshotRepository,
             DailyCheckInRepository checkInRepository,
             HabitPlanRepository habitPlanRepository,
-            PatientRepository patientRepository,
+            EstudianteRepository estudianteRepository,
             TaskCheckInRepository taskCheckInRepository) {
         this.snapshotRepository = snapshotRepository;
         this.checkInRepository = checkInRepository;
         this.habitPlanRepository = habitPlanRepository;
-        this.patientRepository = patientRepository;
+        this.estudianteRepository = estudianteRepository;
         this.taskCheckInRepository = taskCheckInRepository;
     }
 
     @Transactional
-    public AdherenceSnapshot calculateAndSave(Long patientId) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+    public AdherenceSnapshot calculateAndSave(Long estudianteId) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
         LocalDate today = LocalDate.now();
 
-        double weeklyCompliance = calculateCompliance(patientId, today.minusDays(6), today);
-        double monthlyCompliance = calculateCompliance(patientId, today.minusDays(29), today);
-        int streak = calculateStreak(patientId);
-        double consistency = calculateConsistency(patientId, today.minusDays(13), today);
+        double weeklyCompliance = calculateCompliance(estudianteId, today.minusDays(6), today);
+        double monthlyCompliance = calculateCompliance(estudianteId, today.minusDays(29), today);
+        int streak = calculateStreak(estudianteId);
+        double consistency = calculateConsistency(estudianteId, today.minusDays(13), today);
 
         AdherenceSnapshot snapshot = snapshotRepository
-                .findByPatientAndSnapshotDate(patient, today)
+                .findByEstudianteAndSnapshotDate(estudiante, today)
                 .orElse(new AdherenceSnapshot());
 
-        snapshot.setPatient(patient);
+        snapshot.setEstudiante(estudiante);
         snapshot.setSnapshotDate(today);
         snapshot.setWeeklyCompliance(weeklyCompliance);
         snapshot.setMonthlyCompliance(monthlyCompliance);
@@ -58,9 +58,9 @@ public class AdherenceService {
         return snapshotRepository.save(snapshot);
     }
 
-    private double calculateCompliance(Long patientId, LocalDate from, LocalDate to) {
+    private double calculateCompliance(Long estudianteId, LocalDate from, LocalDate to) {
         List<DailyCheckIn> checkIns = checkInRepository
-                .findByPatientIdAndCheckInDateBetween(patientId, from, to);
+                .findByEstudianteIdAndCheckInDateBetween(estudianteId, from, to);
 
         if (checkIns.isEmpty()) return 0.0;
 
@@ -80,9 +80,9 @@ public class AdherenceService {
         return Math.round((completedTasks * 100.0 / totalTasks) * 10.0) / 10.0;
     }
 
-    private int calculateStreak(Long patientId) {
+    private int calculateStreak(Long estudianteId) {
         List<DailyCheckIn> checkIns = checkInRepository
-                .findByPatientIdOrderByCheckInDateDesc(patientId);
+                .findByEstudianteIdOrderByCheckInDateDesc(estudianteId);
 
         if (checkIns.isEmpty()) return 0;
 
@@ -111,9 +111,9 @@ public class AdherenceService {
         return streak;
     }
 
-    private double calculateConsistency(Long patientId, LocalDate from, LocalDate to) {
+    private double calculateConsistency(Long estudianteId, LocalDate from, LocalDate to) {
         List<DailyCheckIn> checkIns = checkInRepository
-                .findByPatientIdAndCheckInDateBetween(patientId, from, to);
+                .findByEstudianteIdAndCheckInDateBetween(estudianteId, from, to);
 
         if (checkIns.size() < 2) return 0.0;
 
@@ -143,19 +143,19 @@ public class AdherenceService {
         return Math.max(0.0, Math.round((100.0 - stdDev) * 10.0) / 10.0);
     }
 
-    public AdherenceSnapshot getLatestSnapshot(Long patientId) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+    public AdherenceSnapshot getLatestSnapshot(Long estudianteId) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
         return snapshotRepository
-                .findByPatientOrderBySnapshotDateDesc(patient)
+                .findByEstudianteOrderBySnapshotDateDesc(estudiante)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("No hay métricas calculadas aún"));
     }
 
-    public List<AdherenceSnapshot> getAllSnapshots(Long patientId) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
-        return snapshotRepository.findByPatientOrderBySnapshotDateDesc(patient);
+    public List<AdherenceSnapshot> getAllSnapshots(Long estudianteId) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
+        return snapshotRepository.findByEstudianteOrderBySnapshotDateDesc(estudiante);
     }
 }

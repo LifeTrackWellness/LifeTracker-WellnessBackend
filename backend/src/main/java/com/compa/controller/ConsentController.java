@@ -1,7 +1,7 @@
-package com.wellness.backend.controller;
+package com.compa.controller;
 
-import com.wellness.backend.model.PatientConsent;
-import com.wellness.backend.service.ConsentService;
+import com.compa.model.EstudianteConsent;
+import com.compa.service.ConsentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/patients/{patientId}/consents")
+@RequestMapping("/api/estudiantes/{estudianteId}/consents")
 @CrossOrigin(origins = "*")
 public class ConsentController
 {
@@ -19,19 +19,19 @@ public class ConsentController
     }
 
     @GetMapping
-    public ResponseEntity<List>getConsentsByPatientId(@PathVariable Long patientId)
-    {        List<PatientConsent> consents = consentService.getConsentsByPatient(patientId);
+    public ResponseEntity<List>getConsentsByEstudianteId(@PathVariable Long estudianteId)
+    {        List<EstudianteConsent> consents = consentService.getConsentsByEstudiante(estudianteId);
         return ResponseEntity.ok(consents);
     }
 
     @GetMapping("/pending")
-    public ResponseEntity<Boolean>getPendingConsentsByPatientId(@PathVariable Long patientId)
+    public ResponseEntity<Boolean>getPendingConsentsByEstudianteId(@PathVariable Long estudianteId)
     {
-        return ResponseEntity.ok(consentService.hasPendingConsents(patientId));
+        return ResponseEntity.ok(consentService.hasPendingConsents(estudianteId));
     }
 
     @PatchMapping("/{consentId}/accept")
-    public ResponseEntity<PatientConsent> acceptConsent(@PathVariable Long consentId)
+    public ResponseEntity<EstudianteConsent> acceptConsent(@PathVariable Long consentId)
     {
         return ResponseEntity.ok(consentService.acceptConsent(consentId));
 

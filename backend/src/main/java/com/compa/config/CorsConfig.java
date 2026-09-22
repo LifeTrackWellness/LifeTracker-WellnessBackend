@@ -1,4 +1,4 @@
-package com.wellness.backend.config;
+package com.compa.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +18,7 @@ public class CorsConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "http://localhost:5174",
+                "http://192.168.56.1:5174",
                 "https://lifetrackerwellnesfront.vercel.app"
         ));
         configuration.setAllowedMethods(List.of(

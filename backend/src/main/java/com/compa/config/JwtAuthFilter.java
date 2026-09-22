@@ -1,8 +1,8 @@
-package com.wellness.backend.config;
+package com.compa.config;
 
-import com.wellness.backend.repository.PatientRepository;
-import com.wellness.backend.repository.ProfessionalRepository;
-import com.wellness.backend.service.JwtService;
+import com.compa.repository.EstudianteRepository;
+import com.compa.repository.OrientadorRepository;
+import com.compa.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,8 +25,8 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final ProfessionalRepository professionalRepository;
-    private final PatientRepository patientRepository;
+    private final OrientadorRepository orientadorRepository;
+    private final EstudianteRepository estudianteRepository;
 
     @Override
     protected void doFilterInternal(
@@ -54,19 +54,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             boolean authenticated = false;
 
-            // Buscar primero en profesionales
-            if ("PROFESSIONAL".equals(role)) {
-                var professionalOpt = professionalRepository.findByEmail(email);
-                if (professionalOpt.isPresent()) {
+            // Buscar primero en orientadores
+            if ("ORIENTADOR".equals(role)) {
+                var orientadorOpt = orientadorRepository.findByEmail(email);
+                if (orientadorOpt.isPresent()) {
                     setAuthentication(request, email, role);
                     authenticated = true;
                 }
             }
 
-            // Buscar en pacientes
-            if (!authenticated && "PATIENT".equals(role)) {
-                var patientOpt = patientRepository.findByEmail(email);
-                if (patientOpt.isPresent()) {
+            // Buscar en estudiantes
+            if (!authenticated && "ESTUDIANTE".equals(role)) {
+                var estudianteOpt = estudianteRepository.findByEmail(email);
+                if (estudianteOpt.isPresent()) {
                     setAuthentication(request, email, role);
                 }
             }

@@ -1,11 +1,11 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.wellness.backend.enums.DeactivationReason;
-import com.wellness.backend.enums.DocumentType;
-import com.wellness.backend.enums.PatientStatus;
-import com.wellness.backend.enums.Role;
+import com.compa.enums.DeactivationReason;
+import com.compa.enums.DocumentType;
+import com.compa.enums.EstudianteStatus;
+import com.compa.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -19,11 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "patients")
+@Table(name = "estudiantes")
 @Data // Genera Getters, Setters, Equals, HashCode y ToString
 @NoArgsConstructor // Constructor vacío (obligatorio para JPA)
 @AllArgsConstructor // Constructor con todos los campos
-public class Patient {
+public class Estudiante {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,7 +53,7 @@ public class Patient {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PatientStatus status = PatientStatus.ACTIVO;
+    private EstudianteStatus status = EstudianteStatus.ACTIVO;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "deactivation_reason")
@@ -87,36 +87,36 @@ public class Patient {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private Role role = Role.PATIENT;
+    private Role role = Role.ESTUDIANTE;
 
-    // --- Relación con profesional ---
+    // --- Relación con orientador ---
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "professional_id")
+    @JoinColumn(name = "orientador_id")
     @JsonIgnore
-    private Professional professional;
+    private Orientador orientador;
 
     // --- Relaciones existentes ---
 
-    @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "estudiante", cascade = CascadeType.ALL)
     private ClinicalInfo clinicalInfo;
 
-    @OneToMany(mappedBy = "patient")
+    @OneToMany(mappedBy = "estudiante")
     @JsonManagedReference
     private List<Guardian> guardians;
 
-    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
-    private List<PatientConsent> consents = new ArrayList<>();
+    @OneToMany(mappedBy = "estudiante", cascade = CascadeType.ALL)
+    private List<EstudianteConsent> consents = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         if (this.status == null)
-            this.status = PatientStatus.ACTIVO;
+            this.status = EstudianteStatus.ACTIVO;
         if (this.documentType == null)
             this.documentType = DocumentType.CEDULA;
         if (this.role == null)
-            this.role = Role.PATIENT;
+            this.role = Role.ESTUDIANTE;
     }
 
 }

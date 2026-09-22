@@ -1,4 +1,4 @@
-package com.wellness.backend.dto.request;
+package com.compa.dto.request;
 
 import lombok.Data;
 import jakarta.validation.constraints.Email;

@@ -1,4 +1,4 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -22,9 +22,9 @@ public class AdherenceSnapshot
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="patient_id",nullable = false)
+    @JoinColumn(name="estudiante_id",nullable = false)
     @JsonIgnore
-    private Patient patient;
+    private Estudiante estudiante;
 
     @Column(name="snapshot_date",nullable = false)
     private LocalDate snapshotDate;

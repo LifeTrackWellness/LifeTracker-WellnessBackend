@@ -1,14 +1,14 @@
-package com.wellness.backend.controller;
+package com.compa.controller;
 
-import com.wellness.backend.model.AdherenceSnapshot;
-import com.wellness.backend.service.AdherenceService;
+import com.compa.model.AdherenceSnapshot;
+import com.compa.service.AdherenceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/patients/{patientId}/adherence")
+@RequestMapping("/api/estudiantes/{estudianteId}/adherence")
 @CrossOrigin(origins = "*")
 public class AdherenceController {
 
@@ -19,12 +19,12 @@ public class AdherenceController {
     }
 
     @GetMapping("/snapshot")
-    public ResponseEntity<AdherenceSnapshot> getLatestSnapshot(@PathVariable Long patientId) {
-        return ResponseEntity.ok(adherenceService.getLatestSnapshot(patientId));
+    public ResponseEntity<AdherenceSnapshot> getLatestSnapshot(@PathVariable Long estudianteId) {
+        return ResponseEntity.ok(adherenceService.getLatestSnapshot(estudianteId));
     }
 
     @GetMapping("/snapshots")
-    public ResponseEntity<List<AdherenceSnapshot>> getAllSnapshots(@PathVariable Long patientId) {
-        return ResponseEntity.ok(adherenceService.getAllSnapshots(patientId));
+    public ResponseEntity<List<AdherenceSnapshot>> getAllSnapshots(@PathVariable Long estudianteId) {
+        return ResponseEntity.ok(adherenceService.getAllSnapshots(estudianteId));
     }
 }

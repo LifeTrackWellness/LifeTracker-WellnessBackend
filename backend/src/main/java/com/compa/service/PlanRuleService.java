@@ -1,11 +1,11 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
-import com.wellness.backend.model.HabitPlan;
-import com.wellness.backend.model.PlanRule;
-import com.wellness.backend.repository.HabitPlanRepository;
-import com.wellness.backend.repository.HabitTaskRepository;
-import com.wellness.backend.repository.PlanRuleRepository;
-import com.wellness.backend.repository.RuleTemplateRepository;
+import com.compa.model.HabitPlan;
+import com.compa.model.PlanRule;
+import com.compa.repository.HabitPlanRepository;
+import com.compa.repository.HabitTaskRepository;
+import com.compa.repository.PlanRuleRepository;
+import com.compa.repository.RuleTemplateRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

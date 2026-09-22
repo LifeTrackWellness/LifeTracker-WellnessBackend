@@ -1,4 +1,4 @@
-package com.wellness.backend.dto.request;
+package com.compa.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-public class CreatePatientAccountRequest {
+public class CreateEstudianteAccountRequest {
 
     @NotBlank(message = "El nombre es obligatorio")
     private String name;

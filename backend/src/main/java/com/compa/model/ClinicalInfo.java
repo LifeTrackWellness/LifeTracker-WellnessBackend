@@ -1,8 +1,8 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.wellness.backend.enums.HealthStatus;
+import com.compa.enums.HealthStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,9 +22,9 @@ public class ClinicalInfo {
     private Long id;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "patient_id", nullable = false, unique = true)
+    @JoinColumn(name = "estudiante_id", nullable = false, unique = true)
     @JsonIgnoreProperties("clinicalInfo")
-    private Patient patient;
+    private Estudiante estudiante;
 
     @Column(name = "main_condition", nullable = false)
     private String mainCondition;

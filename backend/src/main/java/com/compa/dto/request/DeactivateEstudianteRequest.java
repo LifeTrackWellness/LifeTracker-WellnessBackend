@@ -1,11 +1,11 @@
-package com.wellness.backend.dto.request;
+package com.compa.dto.request;
 
-import com.wellness.backend.enums.DeactivationReason;
+import com.compa.enums.DeactivationReason;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class DeactivatePatientRequest {
+public class DeactivateEstudianteRequest {
     @NotNull(message = "El motivo de desactivacion es obligatorio")
     private DeactivationReason reason;
 

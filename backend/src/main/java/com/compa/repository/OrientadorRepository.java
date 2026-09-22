@@ -1,17 +1,17 @@
-package com.wellness.backend.repository;
+package com.compa.repository;
 
-import com.wellness.backend.model.Professional;
+import com.compa.model.Orientador;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface ProfessionalRepository extends JpaRepository<Professional, Long>
+public interface OrientadorRepository extends JpaRepository<Orientador, Long>
 {
-    Optional<Professional> findByEmail(String email);
+    Optional<Orientador> findByEmail(String email);
 
-    Optional<Professional> findByVerificationToken(String token);
+    Optional<Orientador> findByVerificationToken(String token);
 
     boolean existsByEmail(String email);
 

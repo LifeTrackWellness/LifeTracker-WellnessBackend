@@ -1,6 +1,6 @@
-package com.wellness.backend.enums;
+package com.compa.enums;
 
-public enum ProfessionalStatus
+public enum OrientadorStatus
 {
      PENDING,  // Registrado pero sin confirmar email
      ACTIVE    // Email confirmado, puede iniciar sesión

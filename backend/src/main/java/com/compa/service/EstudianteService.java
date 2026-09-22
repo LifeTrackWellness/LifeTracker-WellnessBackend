@@ -1,18 +1,18 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
-import com.wellness.backend.dto.request.CreatePatientAccountRequest;
-import com.wellness.backend.dto.request.DeactivatePatientRequest;
-import com.wellness.backend.dto.request.PatientListDTO;
-import com.wellness.backend.dto.request.ReactivatePatientRequest;
-import com.wellness.backend.enums.DocumentType;
-import com.wellness.backend.enums.PatientStatus;
-import com.wellness.backend.enums.Role;
-import com.wellness.backend.exception.BusinessException;
-import com.wellness.backend.exception.ResourceNotFoundException;
-import com.wellness.backend.model.Patient;
-import com.wellness.backend.model.Professional;
-import com.wellness.backend.repository.PatientRepository;
-import com.wellness.backend.repository.ProfessionalRepository;
+import com.compa.dto.request.CreateEstudianteAccountRequest;
+import com.compa.dto.request.DeactivateEstudianteRequest;
+import com.compa.dto.request.EstudianteListDTO;
+import com.compa.dto.request.ReactivateEstudianteRequest;
+import com.compa.enums.DocumentType;
+import com.compa.enums.EstudianteStatus;
+import com.compa.enums.Role;
+import com.compa.exception.BusinessException;
+import com.compa.exception.ResourceNotFoundException;
+import com.compa.model.Estudiante;
+import com.compa.model.Orientador;
+import com.compa.repository.EstudianteRepository;
+import com.compa.repository.OrientadorRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,38 +25,38 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class PatientService {
-    private final PatientRepository patientRepository;
+public class EstudianteService {
+    private final EstudianteRepository estudianteRepository;
     private final ConsentService consentService;
-    private final ProfessionalRepository professionalRepository;
+    private final OrientadorRepository orientadorRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
-    public PatientService(PatientRepository patientRepository,
+    public EstudianteService(EstudianteRepository estudianteRepository,
             ConsentService consentService,
-            ProfessionalRepository professionalRepository,
+            OrientadorRepository orientadorRepository,
             PasswordEncoder passwordEncoder,
             EmailService emailService) {
-        this.patientRepository = patientRepository;
+        this.estudianteRepository = estudianteRepository;
         this.consentService = consentService;
-        this.professionalRepository = professionalRepository;
+        this.orientadorRepository = orientadorRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
     }
 
-    // CRITERIO: El profesional crea una cuenta de paciente desde su panel
+    // CRITERIO: El orientador crea una cuenta de estudiante desde su panel
     // El sistema genera contraseña temporal y envía email de activación
     @Transactional
-    public Patient createPatientAccount(Long professionalId, CreatePatientAccountRequest request) {
-        Professional professional = professionalRepository.findById(professionalId)
-                .orElseThrow(() -> new ResourceNotFoundException("Profesional", professionalId));
+    public Estudiante createEstudianteAccount(Long orientadorId, CreateEstudianteAccountRequest request) {
+        Orientador orientador = orientadorRepository.findById(orientadorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Orientador", orientadorId));
 
-        if (patientRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException("Ya existe un paciente con ese email");
+        if (estudianteRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException("Ya existe un estudiante con ese email");
         }
 
         // Validar documento único
-        if (patientRepository.existsByIdentityDocument(request.getIdentityDocument())) {
+        if (estudianteRepository.existsByIdentityDocument(request.getIdentityDocument())) {
             throw new BusinessException("Ese documento ya está registrado");
         }
 
@@ -64,141 +64,141 @@ public class PatientService {
         String tempPassword = generateTempPassword();
         String activationToken = UUID.randomUUID().toString();
 
-        Patient patient = new Patient();
-        patient.setName(request.getName());
-        patient.setLastName(request.getLastName());
-        patient.setEmail(request.getEmail());
-        patient.setPassword(passwordEncoder.encode(tempPassword));
-        patient.setTempPassword(tempPassword);
-        patient.setActivationToken(activationToken);
-        patient.setActivationTokenExpiresAt(LocalDateTime.now().plusHours(48));
-        patient.setAccountActivated(false);
-        patient.setProfessional(professional);
-        patient.setIdentityDocument(request.getIdentityDocument());
-        patient.setDocumentType(DocumentType.valueOf(request.getDocumentType()));
-        patient.setPhoneNumber(request.getPhoneNumber());
-        patient.setStatus(PatientStatus.ACTIVO);
-        patient.setRole(Role.PATIENT);
+        Estudiante estudiante = new Estudiante();
+        estudiante.setName(request.getName());
+        estudiante.setLastName(request.getLastName());
+        estudiante.setEmail(request.getEmail());
+        estudiante.setPassword(passwordEncoder.encode(tempPassword));
+        estudiante.setTempPassword(tempPassword);
+        estudiante.setActivationToken(activationToken);
+        estudiante.setActivationTokenExpiresAt(LocalDateTime.now().plusHours(48));
+        estudiante.setAccountActivated(false);
+        estudiante.setOrientador(orientador);
+        estudiante.setIdentityDocument(request.getIdentityDocument());
+        estudiante.setDocumentType(DocumentType.valueOf(request.getDocumentType()));
+        estudiante.setPhoneNumber(request.getPhoneNumber());
+        estudiante.setStatus(EstudianteStatus.ACTIVO);
+        estudiante.setRole(Role.ESTUDIANTE);
 
-        patient = patientRepository.save(patient);
-        consentService.generateConsentsForPatient(patient);
+        estudiante = estudianteRepository.save(estudiante);
+        consentService.generateConsentsForEstudiante(estudiante);
 
-        // Enviar email con credenciales al paciente
+        // Enviar email con credenciales al estudiante
         try {
-            emailService.sendPatientCredentials(
-                    patient.getEmail(),
-                    patient.getName(),
+            emailService.sendEstudianteCredentials(
+                    estudiante.getEmail(),
+                    estudiante.getName(),
                     tempPassword,
                     activationToken);
         } catch (Exception e) {
-            log.warn("No se pudo enviar email a {}: {}", patient.getEmail(), e.getMessage());
+            log.warn("No se pudo enviar email a {}: {}", estudiante.getEmail(), e.getMessage());
         }
 
-        return patient;
+        return estudiante;
     }
 
-    // CRITERIO: El paciente activa su cuenta desde el link recibido por email
+    // CRITERIO: El estudiante activa su cuenta desde el link recibido por email
     @Transactional
-    public Patient activatePatientAccount(String token) {
-        Patient patient = patientRepository.findByActivationToken(token)
+    public Estudiante activateEstudianteAccount(String token) {
+        Estudiante estudiante = estudianteRepository.findByActivationToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Token inválido o ya usado"));
 
-        if (patient.getActivationTokenExpiresAt().isBefore(LocalDateTime.now())) {
+        if (estudiante.getActivationTokenExpiresAt().isBefore(LocalDateTime.now())) {
             throw new BusinessException("El enlace de activación ha vencido.");
         }
 
-        patient.setAccountActivated(true);
-        patient.setActivationToken(null);
-        patient.setActivationTokenExpiresAt(null);
-        patient.setTempPassword(null);
+        estudiante.setAccountActivated(true);
+        estudiante.setActivationToken(null);
+        estudiante.setActivationTokenExpiresAt(null);
+        estudiante.setTempPassword(null);
 
-        return patientRepository.save(patient);
+        return estudianteRepository.save(estudiante);
     }
 
-    // CRITERIO: El terapeuta puede editar datos de contacto (correo, celular)
+    // CRITERIO: El orientador puede editar datos de contacto (correo, celular)
     @Transactional
-    public Patient updateContactInfo(Long id, String newEmail, String newPhone) {
-        Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Paciente no encontrado con ID: " + id));
-        patient.setEmail(newEmail);
-        patient.setPhoneNumber(newPhone);
-        return patientRepository.save(patient);
+    public Estudiante updateContactInfo(Long id, String newEmail, String newPhone) {
+        Estudiante estudiante = estudianteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Estudiante no encontrado con ID: " + id));
+        estudiante.setEmail(newEmail);
+        estudiante.setPhoneNumber(newPhone);
+        return estudianteRepository.save(estudiante);
     }
 
     // Método adicional para listar activos (útil para el frontend en React)
-    public List<Patient> getAllPatients() {
-        return patientRepository.findByStatus(PatientStatus.ACTIVO);
+    public List<Estudiante> getAllEstudiantes() {
+        return estudianteRepository.findByStatus(EstudianteStatus.ACTIVO);
     }
 
-    // Listar pacientes inactivos
-    public List<Patient> getInactivePatients() {
-        return patientRepository.findByStatus(PatientStatus.INACTIVO);
+    // Listar estudiantes inactivos
+    public List<Estudiante> getInactiveEstudiantes() {
+        return estudianteRepository.findByStatus(EstudianteStatus.INACTIVO);
     }
 
-    // Listar pacientes vinculados a un profesional específico
-    public List<Patient> getPatientsByProfessional(Long professionalId) {
-        return patientRepository.findByProfessionalId(professionalId);
+    // Listar estudiantes vinculados a un orientador específico
+    public List<Estudiante> getEstudiantesByOrientador(Long orientadorId) {
+        return estudianteRepository.findByOrientadorId(orientadorId);
     }
 
-    // Obtener paciente por id
+    // Obtener estudiante por id
     @Transactional(readOnly = true)
-    public Patient getPatientById(Long id) {
-        return patientRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", id));
+    public Estudiante getEstudianteById(Long id) {
+        return estudianteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", id));
     }
 
-    // Desactivar paciente (baja lógica) - requiere motivo
+    // Desactivar estudiante (baja lógica) - requiere motivo
     @Transactional
-    public Patient deactivatePatient(Long id, DeactivatePatientRequest request) {
-        Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", id));
-        if (PatientStatus.INACTIVO.equals(patient.getStatus())) {
-            throw new BusinessException("El paciente ya se encuentra inactivo.");
+    public Estudiante deactivateEstudiante(Long id, DeactivateEstudianteRequest request) {
+        Estudiante estudiante = estudianteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", id));
+        if (EstudianteStatus.INACTIVO.equals(estudiante.getStatus())) {
+            throw new BusinessException("El estudiante ya se encuentra inactivo.");
         }
-        patient.setStatus(PatientStatus.INACTIVO);
-        patient.setDeactivationReason(request.getReason());
-        patient.setDeactivatedAt(LocalDateTime.now());
-        return patientRepository.save(patient);
+        estudiante.setStatus(EstudianteStatus.INACTIVO);
+        estudiante.setDeactivationReason(request.getReason());
+        estudiante.setDeactivatedAt(LocalDateTime.now());
+        return estudianteRepository.save(estudiante);
     }
 
-    // Reactivar paciente - permite actualizar info básica
+    // Reactivar estudiante - permite actualizar info básica
     @Transactional
-    public Patient reactivatePatient(Long id, ReactivatePatientRequest request) {
-        Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", id));
-        if (PatientStatus.ACTIVO.equals(patient.getStatus())) {
-            throw new BusinessException("El paciente ya se encuentra activo.");
+    public Estudiante reactivateEstudiante(Long id, ReactivateEstudianteRequest request) {
+        Estudiante estudiante = estudianteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", id));
+        if (EstudianteStatus.ACTIVO.equals(estudiante.getStatus())) {
+            throw new BusinessException("El estudiante ya se encuentra activo.");
         }
-        patient.setStatus(PatientStatus.ACTIVO);
-        patient.setDeactivationReason(null);
-        patient.setDeactivatedAt(null);
+        estudiante.setStatus(EstudianteStatus.ACTIVO);
+        estudiante.setDeactivationReason(null);
+        estudiante.setDeactivatedAt(null);
         if (request.getName() != null && !request.getName().isBlank())
-            patient.setName(request.getName());
+            estudiante.setName(request.getName());
         if (request.getLastName() != null && !request.getLastName().isBlank())
-            patient.setLastName(request.getLastName());
+            estudiante.setLastName(request.getLastName());
         if (request.getDocumentType() != null)
-            patient.setDocumentType(request.getDocumentType());
+            estudiante.setDocumentType(request.getDocumentType());
         if (request.getPhoneNumber() != null)
-            patient.setPhoneNumber(request.getPhoneNumber());
+            estudiante.setPhoneNumber(request.getPhoneNumber());
         if (request.getEmail() != null)
-            patient.setEmail(request.getEmail());
-        return patientRepository.save(patient);
+            estudiante.setEmail(request.getEmail());
+        return estudianteRepository.save(estudiante);
     }
 
-    public List<PatientListDTO> getAllPatientsFiltered(String search, PatientStatus status, String condition) {
-        List<Patient> patients;
+    public List<EstudianteListDTO> getAllEstudiantesFiltered(String search, EstudianteStatus status, String condition) {
+        List<Estudiante> estudiantes;
 
         if (search != null && !search.isEmpty()) {
-            patients = patientRepository.findByNameContainingIgnoreCaseOrIdentityDocumentContaining(search, search);
+            estudiantes = estudianteRepository.findByNameContainingIgnoreCaseOrIdentityDocumentContaining(search, search);
         } else if (condition != null && !condition.isEmpty()) {
-            patients = patientRepository.findByPrimaryCondition(condition);
+            estudiantes = estudianteRepository.findByPrimaryCondition(condition);
         } else if (status != null) {
-            patients = patientRepository.findByStatus(status);
+            estudiantes = estudianteRepository.findByStatus(status);
         } else {
-            patients = patientRepository.findAll();
+            estudiantes = estudianteRepository.findAll();
         }
 
-        return patients.stream().map(p -> new PatientListDTO(
+        return estudiantes.stream().map(p -> new EstudianteListDTO(
                 p.getName(),
                 p.getIdentityDocument(),
                 (p.getClinicalInfo() != null) ? p.getClinicalInfo().getMainCondition() : "Sin asignar",

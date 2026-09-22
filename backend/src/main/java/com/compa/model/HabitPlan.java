@@ -1,7 +1,7 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.wellness.backend.enums.PlanStatus;
+import com.compa.enums.PlanStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,8 +23,8 @@ public class HabitPlan {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id", nullable = false)
-    private Patient patient;
+    @JoinColumn(name = "estudiante_id", nullable = false)
+    private Estudiante estudiante;
 
     @Column(nullable = false)
     private String name;

@@ -1,8 +1,8 @@
-package com.wellness.backend.dto.response;
+package com.compa.dto.response;
 
-import com.wellness.backend.enums.HealthStatus;
-import com.wellness.backend.enums.PlanStatus;
-import com.wellness.backend.enums.RiskLevel;
+import com.compa.enums.HealthStatus;
+import com.compa.enums.PlanStatus;
+import com.compa.enums.RiskLevel;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,8 +16,8 @@ import java.util.List;
 public class ProgressReportResponse
 {
     // Encabezado
-    private String patientFullName;
-    private String therapistFullName;
+    private String estudianteFullName;
+    private String orientadorFullName;
     private LocalDateTime generatedAt;
 
     // Métricas de adherencia
@@ -63,7 +63,7 @@ public class ProgressReportResponse
     public static class ConclusionDTO {
         private Long id;
         private String content;
-        private String therapistName;
+        private String orientadorName;
         private LocalDateTime createdAt;
     }
 }

@@ -1,6 +1,6 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
-import com.wellness.backend.enums.TaskPriority;
+import com.compa.enums.TaskPriority;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

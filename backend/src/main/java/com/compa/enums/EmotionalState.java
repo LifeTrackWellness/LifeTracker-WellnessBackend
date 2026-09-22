@@ -1,4 +1,4 @@
-package com.wellness.backend.enums;
+package com.compa.enums;
 
 public enum EmotionalState {
     MUY_MAL, MAL, REGULAR, BIEN, MUY_BIEN;

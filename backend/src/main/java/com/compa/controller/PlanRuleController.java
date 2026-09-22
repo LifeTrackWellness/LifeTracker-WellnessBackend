@@ -1,9 +1,9 @@
-package com.wellness.backend.controller;
+package com.compa.controller;
 
-import com.wellness.backend.model.PlanRule;
-import com.wellness.backend.model.RuleEvaluationLog;
-import com.wellness.backend.repository.RuleEvaluationLogRepository;
-import com.wellness.backend.service.PlanRuleService;
+import com.compa.model.PlanRule;
+import com.compa.model.RuleEvaluationLog;
+import com.compa.repository.RuleEvaluationLogRepository;
+import com.compa.service.PlanRuleService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

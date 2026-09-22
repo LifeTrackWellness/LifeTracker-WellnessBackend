@@ -1,4 +1,4 @@
-package com.wellness.backend.dto.request;
+package com.compa.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

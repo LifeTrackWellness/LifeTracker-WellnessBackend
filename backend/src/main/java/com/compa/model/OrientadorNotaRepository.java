@@ -1,12 +1,12 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.wellness.backend.model.TherapistConclusion;
+import com.compa.model.OrientadorNota;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface TherapistConclusionRepository extends JpaRepository<TherapistConclusion, Long> {
-    List<TherapistConclusion> findByPatientIdOrderByCreatedAtDesc(Long patientId);
+public interface OrientadorNotaRepository extends JpaRepository<OrientadorNota, Long> {
+    List<OrientadorNota> findByEstudianteIdOrderByCreatedAtDesc(Long estudianteId);
 }

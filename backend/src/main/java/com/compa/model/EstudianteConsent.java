@@ -1,4 +1,4 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -8,21 +8,21 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 @Entity
-@Table(name = "patient_consent")
+@Table(name = "estudiante_consent")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class PatientConsent
+public class EstudianteConsent
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "patient_id", nullable = false)
+    @JoinColumn(name = "estudiante_id", nullable = false)
     @JsonIgnore
-    private Patient patient;
+    private Estudiante estudiante;
 
     @ManyToOne
     @JoinColumn(name = "consent_template_id", nullable = false)

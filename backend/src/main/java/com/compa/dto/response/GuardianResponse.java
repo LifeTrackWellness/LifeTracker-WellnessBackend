@@ -1,6 +1,6 @@
-package com.wellness.backend.dto.response;
+package com.compa.dto.response;
 
-import com.wellness.backend.enums.DocumentType;
+import com.compa.enums.DocumentType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +17,6 @@ public class GuardianResponse {
     private String relationship;
     private String email;
     private String phoneNumber;
-    private Long patientId;
+    private Long estudianteId;
 
 }

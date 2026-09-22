@@ -1,9 +1,9 @@
-package com.wellness.backend.controller;
+package com.compa.controller;
 
-import com.wellness.backend.dto.request.LoginRequest;
-import com.wellness.backend.dto.request.RegisterRequest;
-import com.wellness.backend.dto.response.AuthResponse;
-import com.wellness.backend.service.AuthService;
+import com.compa.dto.request.LoginRequest;
+import com.compa.dto.request.RegisterRequest;
+import com.compa.dto.response.AuthResponse;
+import com.compa.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

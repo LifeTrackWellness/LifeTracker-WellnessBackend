@@ -1,8 +1,8 @@
-package com.wellness.backend.repository;
+package com.compa.repository;
 
-import com.wellness.backend.enums.PlanStatus;
-import com.wellness.backend.model.HabitPlan;
-import com.wellness.backend.model.Patient;
+import com.compa.enums.PlanStatus;
+import com.compa.model.HabitPlan;
+import com.compa.model.Estudiante;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
@@ -10,13 +10,13 @@ import java.util.Optional;
 
 @Repository
 public interface HabitPlanRepository extends JpaRepository<HabitPlan, Long> {
-    List<HabitPlan> findByPatientId(Long patientId);
+    List<HabitPlan> findByEstudianteId(Long estudianteId);
 
-    Optional<HabitPlan> findByPatientIdAndStatus(Long patientId, PlanStatus status);
+    Optional<HabitPlan> findByEstudianteIdAndStatus(Long estudianteId, PlanStatus status);
 
-    boolean existsByPatientIdAndStatus(Long patientId, PlanStatus status);
+    boolean existsByEstudianteIdAndStatus(Long estudianteId, PlanStatus status);
 
-    List<HabitPlan> findByPatient(Patient patient);
+    List<HabitPlan> findByEstudiante(Estudiante estudiante);
 
 
 }

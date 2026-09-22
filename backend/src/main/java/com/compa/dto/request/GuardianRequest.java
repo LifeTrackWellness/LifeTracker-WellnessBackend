@@ -1,6 +1,6 @@
-package com.wellness.backend.dto.request;
+package com.compa.dto.request;
 
-import com.wellness.backend.enums.DocumentType;
+import com.compa.enums.DocumentType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

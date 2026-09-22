@@ -1,14 +1,14 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
-import com.wellness.backend.dto.request.DailyCheckInRequest;
-import com.wellness.backend.dto.request.TaskCheckInRequest;
-import com.wellness.backend.dto.response.CheckInDetailResponse;
-import com.wellness.backend.dto.response.CheckInSummaryResponse;
-import com.wellness.backend.enums.PlanStatus;
-import com.wellness.backend.exception.BusinessException;
-import com.wellness.backend.exception.ResourceNotFoundException;
-import com.wellness.backend.model.*;
-import com.wellness.backend.repository.*;
+import com.compa.dto.request.DailyCheckInRequest;
+import com.compa.dto.request.TaskCheckInRequest;
+import com.compa.dto.response.CheckInDetailResponse;
+import com.compa.dto.response.CheckInSummaryResponse;
+import com.compa.enums.PlanStatus;
+import com.compa.exception.BusinessException;
+import com.compa.exception.ResourceNotFoundException;
+import com.compa.model.*;
+import com.compa.repository.*;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class DailyCheckInService {
     private final DailyCheckInRepository checkInRepository;
     private final TaskCheckInRepository taskCheckInRepository;
-    private final PatientRepository patientRepository;
+    private final EstudianteRepository estudianteRepository;
     private final HabitPlanRepository habitPlanRepository;
     private final HabitTaskRepository habitTaskRepository;
     private final AdherenceService adherenceService;
@@ -31,49 +31,49 @@ public class DailyCheckInService {
 
     public DailyCheckInService(DailyCheckInRepository checkInRepository,
             TaskCheckInRepository taskCheckInRepository,
-            PatientRepository patientRepository,
+            EstudianteRepository estudianteRepository,
             HabitPlanRepository habitPlanRepository,
             HabitTaskRepository habitTaskRepository,
             AdherenceService adherenceService,
             @Lazy RuleEvaluationService ruleEvaluationService) {
         this.checkInRepository = checkInRepository;
         this.taskCheckInRepository = taskCheckInRepository;
-        this.patientRepository = patientRepository;
+        this.estudianteRepository = estudianteRepository;
         this.habitPlanRepository = habitPlanRepository;
         this.habitTaskRepository = habitTaskRepository;
         this.adherenceService = adherenceService;
         this.ruleEvaluationService = ruleEvaluationService;
     }
 
-    public List<com.wellness.backend.enums.EmotionalState> getEmotionalStates() {
-        return List.of(com.wellness.backend.enums.EmotionalState.values());
+    public List<com.compa.enums.EmotionalState> getEmotionalStates() {
+        return List.of(com.compa.enums.EmotionalState.values());
     }
 
     @Transactional(readOnly = true)
-    public List<HabitTask> getTodayTasks(Long patientId) {
-        patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+    public List<HabitTask> getTodayTasks(Long estudianteId) {
+        estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
         HabitPlan activePlan = habitPlanRepository
-                .findByPatientIdAndStatus(patientId, PlanStatus.ACTIVO)
-                .orElseThrow(() -> new ResourceNotFoundException("El paciente no tiene un plan activo"));
+                .findByEstudianteIdAndStatus(estudianteId, PlanStatus.ACTIVO)
+                .orElseThrow(() -> new ResourceNotFoundException("El estudiante no tiene un plan activo"));
 
         return habitTaskRepository.findByHabitPlanId(activePlan.getId());
     }
 
     @Transactional
-    public DailyCheckIn createCheckIn(Long patientId, DailyCheckInRequest request) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+    public DailyCheckIn createCheckIn(Long estudianteId, DailyCheckInRequest request) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
         LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
 
-        if (checkInRepository.existsByPatientIdAndCheckInDate(patientId, today)) {
+        if (checkInRepository.existsByEstudianteIdAndCheckInDate(estudianteId, today)) {
             throw new BusinessException("Ya realizaste tu registro de hoy. Puedes editarlo hasta las 23:59.");
         }
 
         DailyCheckIn checkIn = new DailyCheckIn();
-        checkIn.setPatient(patient);
+        checkIn.setEstudiante(estudiante);
         checkIn.setEmotionalState(request.getEmotionalState());
         checkIn.setCheckInDate(today);
         checkIn = checkInRepository.save(checkIn);
@@ -93,18 +93,18 @@ public class DailyCheckInService {
         }
 
         // Calcular métricas y evaluar reglas
-        adherenceService.calculateAndSave(patientId);
-        ruleEvaluationService.evaluateRulesForPatient(patientId);
+        adherenceService.calculateAndSave(estudianteId);
+        ruleEvaluationService.evaluateRulesForEstudiante(estudianteId);
 
         return checkInRepository.findById(checkIn.getId()).orElse(checkIn);
     }
 
     @Transactional
-    public DailyCheckIn updateCheckIn(Long patientId, DailyCheckInRequest request) {
+    public DailyCheckIn updateCheckIn(Long estudianteId, DailyCheckInRequest request) {
         LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
 
         DailyCheckIn checkIn = checkInRepository
-                .findByPatientIdAndCheckInDate(patientId, today)
+                .findByEstudianteIdAndCheckInDate(estudianteId, today)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontro el registro de hoy"));
 
         LocalDateTime limit = today.atTime(23, 59);
@@ -133,23 +133,23 @@ public class DailyCheckInService {
         }
 
         // Recalcular métricas y re-evaluar reglas
-        adherenceService.calculateAndSave(patientId);
-        ruleEvaluationService.evaluateRulesForPatient(patientId);
+        adherenceService.calculateAndSave(estudianteId);
+        ruleEvaluationService.evaluateRulesForEstudiante(estudianteId);
 
         return checkInRepository.findById(checkIn.getId()).orElse(checkIn);
     }
 
     @Transactional(readOnly = true)
-    public DailyCheckIn getTodayCheckIn(Long patientId) {
+    public DailyCheckIn getTodayCheckIn(Long estudianteId) {
         return checkInRepository
-                .findByPatientIdAndCheckInDate(patientId, LocalDate.now(java.time.ZoneId.of("America/Bogota")))
+                .findByEstudianteIdAndCheckInDate(estudianteId, LocalDate.now(java.time.ZoneId.of("America/Bogota")))
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontro el registro de hoy"));
     }
 
     @Transactional(readOnly = true)
-    public int getCurrentStreak(Long patientId) {
+    public int getCurrentStreak(Long estudianteId) {
         List<DailyCheckIn> checkIns = checkInRepository
-                .findByPatientIdOrderByCheckInDateDesc(patientId);
+                .findByEstudianteIdOrderByCheckInDateDesc(estudianteId);
 
         if (checkIns.isEmpty())
             return 0;
@@ -168,8 +168,8 @@ public class DailyCheckInService {
         return streak;
     }
 
-    public String getClosingMessage(Long patientId) {
-        int streak = getCurrentStreak(patientId);
+    public String getClosingMessage(Long estudianteId) {
+        int streak = getCurrentStreak(estudianteId);
         if (streak == 1)
             return "Primer dia completado. Cada gran habito empieza con un primer paso.";
         if (streak < 4)
@@ -182,21 +182,21 @@ public class DailyCheckInService {
     }
 
     @Transactional(readOnly = true)
-    public List<DailyCheckIn> getHistory(Long patientId) {
-        patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
-        return checkInRepository.findByPatientIdOrderByCheckInDateDesc(patientId);
+    public List<DailyCheckIn> getHistory(Long estudianteId) {
+        estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
+        return checkInRepository.findByEstudianteIdOrderByCheckInDateDesc(estudianteId);
     }
 
     @Transactional(readOnly = true)
-    public List<CheckInSummaryResponse> getLast30Days(Long patientId) {
-        patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+    public List<CheckInSummaryResponse> getLast30Days(Long estudianteId) {
+        estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
         LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
 
         List<DailyCheckIn> checkIns = checkInRepository
-                .findByPatientIdOrderByCheckInDateDesc(patientId);
+                .findByEstudianteIdOrderByCheckInDateDesc(estudianteId);
 
         Map<LocalDate, DailyCheckIn> checkInMap = checkIns.stream()
                 .collect(java.util.stream.Collectors.toMap(
@@ -232,11 +232,11 @@ public class DailyCheckInService {
     }
 
     @Transactional(readOnly = true)
-    public CheckInDetailResponse getCheckInDetail(Long patientId, Long checkInId) {
+    public CheckInDetailResponse getCheckInDetail(Long estudianteId, Long checkInId) {
         DailyCheckIn checkIn = checkInRepository.findById(checkInId)
                 .orElseThrow(() -> new ResourceNotFoundException("Check-in", checkInId));
 
-        if (!checkIn.getPatient().getId().equals(patientId)) {
+        if (!checkIn.getEstudiante().getId().equals(estudianteId)) {
             throw new ResourceNotFoundException("Check-in", checkInId);
         }
 

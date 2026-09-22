@@ -1,4 +1,4 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,24 +10,24 @@ import java.time.LocalDateTime;
 
 
 @Entity
-@Table(name = "therapist_conclusions")
+@Table(name = "notas_orientador")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TherapistConclusion
+public class OrientadorNota
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id", nullable = false)
-    private Patient patient;
+    @JoinColumn(name = "estudiante_id", nullable = false)
+    private Estudiante estudiante;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "professional_id", nullable = false)
-    private Professional professional;
+    @JoinColumn(name = "orientador_id", nullable = false)
+    private Orientador orientador;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;

@@ -1,6 +1,6 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
-import com.wellness.backend.enums.ConsentType;
+import com.compa.enums.ConsentType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,11 +1,11 @@
-package com.wellness.backend.dto.request;
+package com.compa.dto.request;
 
-import com.wellness.backend.enums.DocumentType;
-import com.wellness.backend.enums.HealthStatus;
+import com.compa.enums.DocumentType;
+import com.compa.enums.HealthStatus;
 import lombok.Data;
 
 @Data
-public class ReactivatePatientRequest {
+public class ReactivateEstudianteRequest {
     private String name;
     private String lastName;
     private DocumentType documentType;

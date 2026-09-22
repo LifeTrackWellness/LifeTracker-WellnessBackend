@@ -1,7 +1,7 @@
-package com.wellness.backend.dto.response;
+package com.compa.dto.response;
 
-import com.wellness.backend.enums.AlertStatus;
-import com.wellness.backend.enums.AlertType;
+import com.compa.enums.AlertStatus;
+import com.compa.enums.AlertType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class AlertResponse {
     private Long id;
-    private Long patientId;
-    private String patientName;
+    private Long estudianteId;
+    private String estudianteName;
     private AlertType type;
     private AlertStatus status;
     private String description;

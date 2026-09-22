@@ -1,7 +1,7 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.wellness.backend.enums.DocumentType;
+import com.compa.enums.DocumentType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -50,5 +50,5 @@ public class Guardian {
 
     @ManyToOne
     @JsonBackReference
-    private Patient patient;
+    private Estudiante estudiante;
 }

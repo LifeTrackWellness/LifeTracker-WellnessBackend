@@ -1,4 +1,4 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
 public class AuthServiceTest {
 }

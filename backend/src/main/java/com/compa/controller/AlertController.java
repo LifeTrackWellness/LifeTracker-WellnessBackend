@@ -1,10 +1,10 @@
-package com.wellness.backend.controller;
+package com.compa.controller;
 
-import com.wellness.backend.dto.response.AlertResponse;
-import com.wellness.backend.service.AlertService;
-import com.wellness.backend.service.JwtService;
-import com.wellness.backend.repository.ProfessionalRepository;
-import com.wellness.backend.model.Alert;
+import com.compa.dto.response.AlertResponse;
+import com.compa.service.AlertService;
+import com.compa.service.JwtService;
+import com.compa.repository.OrientadorRepository;
+import com.compa.model.Alert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,14 +20,14 @@ public class AlertController {
 
     private final AlertService alertService;
     private final JwtService jwtService;
-    private final ProfessionalRepository professionalRepository;
+    private final OrientadorRepository orientadorRepository;
 
     @GetMapping
     public ResponseEntity<List<AlertResponse>> getAlerts(
             @RequestHeader("Authorization") String authHeader) {
-        Long professionalId = getProfessionalId(authHeader);
+        Long orientadorId = getOrientadorId(authHeader);
         List<AlertResponse> alerts = alertService
-                .getAlertsByProfessional(professionalId)
+                .getAlertsByOrientador(orientadorId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -37,9 +37,9 @@ public class AlertController {
     @GetMapping("/unread-count")
     public ResponseEntity<Map<String, Long>> getUnreadCount(
             @RequestHeader("Authorization") String authHeader) {
-        Long professionalId = getProfessionalId(authHeader);
+        Long orientadorId = getOrientadorId(authHeader);
         return ResponseEntity.ok(Map.of("count",
-                alertService.getUnreadCount(professionalId)));
+                alertService.getUnreadCount(orientadorId)));
     }
 
     @PatchMapping("/{id}/resolve")
@@ -55,9 +55,9 @@ public class AlertController {
     private AlertResponse toResponse(Alert alert) {
         return AlertResponse.builder()
                 .id(alert.getId())
-                .patientId(alert.getPatient().getId())
-                .patientName(alert.getPatient().getName()
-                        + " " + alert.getPatient().getLastName())
+                .estudianteId(alert.getEstudiante().getId())
+                .estudianteName(alert.getEstudiante().getName()
+                        + " " + alert.getEstudiante().getLastName())
                 .type(alert.getType())
                 .status(alert.getStatus())
                 .description(alert.getDescription())
@@ -66,11 +66,11 @@ public class AlertController {
                 .build();
     }
 
-    private Long getProfessionalId(String authHeader) {
+    private Long getOrientadorId(String authHeader) {
         String token = authHeader.substring(7);
         String email = jwtService.extractEmail(token);
-        return professionalRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Profesional no encontrado"))
+        return orientadorRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Orientador no encontrado"))
                 .getId();
     }
 }

@@ -1,13 +1,13 @@
-package com.wellness.backend.repository;
+package com.compa.repository;
 
-import com.wellness.backend.model.Guardian;
+import com.compa.model.Guardian;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
 public interface GuardianRepository extends JpaRepository<Guardian, Long> {
-    Optional<Guardian> findByPatientId(Long patientId);
+    Optional<Guardian> findByEstudianteId(Long estudianteId);
 
-    boolean existsByPatientId(Long patientId);
+    boolean existsByEstudianteId(Long estudianteId);
 }

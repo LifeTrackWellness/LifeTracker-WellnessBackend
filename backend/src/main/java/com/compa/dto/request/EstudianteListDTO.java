@@ -1,14 +1,14 @@
-package com.wellness.backend.dto.request;
+package com.compa.dto.request;
 
-import com.wellness.backend.enums.PatientStatus;
+import com.compa.enums.EstudianteStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class PatientListDTO {
+public class EstudianteListDTO {
     private String name;
     private String document;
     private String primaryCondition;
-    private PatientStatus status;
+    private EstudianteStatus status;
 }

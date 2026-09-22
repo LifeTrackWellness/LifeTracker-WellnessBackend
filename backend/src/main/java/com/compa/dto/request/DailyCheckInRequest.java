@@ -1,6 +1,6 @@
-package com.wellness.backend.dto.request;
+package com.compa.dto.request;
 
-import com.wellness.backend.enums.EmotionalState;
+import com.compa.enums.EmotionalState;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.util.ArrayList;

@@ -1,10 +1,10 @@
-package com.wellness.backend.repository;
+package com.compa.repository;
 
-import com.wellness.backend.enums.RiskLevel;
-import com.wellness.backend.model.HabitPlan;
-import com.wellness.backend.model.HealthStatusHistory;
-import com.wellness.backend.model.Patient;
-import com.wellness.backend.model.RiskLevelHistory;
+import com.compa.enums.RiskLevel;
+import com.compa.model.HabitPlan;
+import com.compa.model.HealthStatusHistory;
+import com.compa.model.Estudiante;
+import com.compa.model.RiskLevelHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
@@ -13,15 +13,15 @@ import java.util.Optional;
 
 @Repository
 public interface RiskLevelHistoryRepository extends JpaRepository<RiskLevelHistory, Long> {
-    List<RiskLevelHistory> findByPatientIdOrderByEvaluatedDateDesc(Long patientId);
+    List<RiskLevelHistory> findByEstudianteIdOrderByEvaluatedDateDesc(Long estudianteId);
 
-    Optional<RiskLevelHistory> findTopByPatientIdOrderByEvaluatedDateDesc(Long patientId);
+    Optional<RiskLevelHistory> findTopByEstudianteIdOrderByEvaluatedDateDesc(Long estudianteId);
 
-    boolean existsByPatientIdAndEvaluatedDate(Long patientId, LocalDate date);
+    boolean existsByEstudianteIdAndEvaluatedDate(Long estudianteId, LocalDate date);
 
-    Optional<RiskLevelHistory> findByPatientIdAndEvaluatedDate(Long patientId, LocalDate date);
+    Optional<RiskLevelHistory> findByEstudianteIdAndEvaluatedDate(Long estudianteId, LocalDate date);
 
-    List<RiskLevelHistory> findTop7ByPatientOrderByEvaluatedDateDesc(Patient patient);
-    Long countByPatientAndRiskLevel(Patient patient, RiskLevel riskLevel);
+    List<RiskLevelHistory> findTop7ByEstudianteOrderByEvaluatedDateDesc(Estudiante estudiante);
+    Long countByEstudianteAndRiskLevel(Estudiante estudiante, RiskLevel riskLevel);
 
 }

@@ -1,7 +1,7 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.wellness.backend.enums.TaskBarrier;
+import com.compa.enums.TaskBarrier;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

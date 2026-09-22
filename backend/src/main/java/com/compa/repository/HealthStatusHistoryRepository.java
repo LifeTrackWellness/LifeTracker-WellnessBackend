@@ -1,7 +1,7 @@
-package com.wellness.backend.repository;
+package com.compa.repository;
 
-import com.wellness.backend.model.HealthStatusHistory;
-import com.wellness.backend.model.Patient;
+import com.compa.model.HealthStatusHistory;
+import com.compa.model.Estudiante;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
@@ -10,5 +10,5 @@ import java.util.List;
 public interface HealthStatusHistoryRepository extends JpaRepository<HealthStatusHistory, Long> {
     List<HealthStatusHistory> findByClinicalInfoIdOrderByChangedAtDesc(Long clinicalInfoId);
 
-    List<HealthStatusHistory> findByClinicalInfo_PatientOrderByChangedAtAsc(Patient patient);
+    List<HealthStatusHistory> findByClinicalInfo_EstudianteOrderByChangedAtAsc(Estudiante estudiante);
 }

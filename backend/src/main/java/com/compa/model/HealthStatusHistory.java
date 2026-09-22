@@ -1,6 +1,6 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
-import com.wellness.backend.enums.HealthStatus;
+import com.compa.enums.HealthStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

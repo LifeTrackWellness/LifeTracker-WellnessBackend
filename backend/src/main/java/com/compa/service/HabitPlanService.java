@@ -1,17 +1,17 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
 
-import com.wellness.backend.dto.request.HabitPlanRequest;
-import com.wellness.backend.dto.request.HabitTaskRequest;
-import com.wellness.backend.enums.PlanStatus;
-import com.wellness.backend.exception.BusinessException;
-import com.wellness.backend.exception.ResourceNotFoundException;
-import com.wellness.backend.model.HabitPlan;
-import com.wellness.backend.model.HabitTask;
-import com.wellness.backend.model.Patient;
-import com.wellness.backend.repository.HabitPlanRepository;
-import com.wellness.backend.repository.HabitTaskRepository;
-import com.wellness.backend.repository.PatientRepository;
+import com.compa.dto.request.HabitPlanRequest;
+import com.compa.dto.request.HabitTaskRequest;
+import com.compa.enums.PlanStatus;
+import com.compa.exception.BusinessException;
+import com.compa.exception.ResourceNotFoundException;
+import com.compa.model.HabitPlan;
+import com.compa.model.HabitTask;
+import com.compa.model.Estudiante;
+import com.compa.repository.HabitPlanRepository;
+import com.compa.repository.HabitTaskRepository;
+import com.compa.repository.EstudianteRepository;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
@@ -28,23 +28,23 @@ public class HabitPlanService {
 
     private final HabitPlanRepository habitPlanRepository;
     private final HabitTaskRepository habitTaskRepository;
-    private final PatientRepository patientRepository;
+    private final EstudianteRepository estudianteRepository;
 
     public HabitPlanService(HabitPlanRepository habitPlanRepository, HabitTaskRepository habitTaskRepository,
-                            PatientRepository patientRepository) {
+                            EstudianteRepository estudianteRepository) {
         this.habitPlanRepository = habitPlanRepository;
         this.habitTaskRepository = habitTaskRepository;
-        this.patientRepository = patientRepository;
+        this.estudianteRepository = estudianteRepository;
     }
 
     @Transactional
-    public HabitPlan createPlan(Long patientId, HabitPlanRequest request) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
+    public HabitPlan createPlan(Long estudianteId, HabitPlanRequest request) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
 
-        if (habitPlanRepository.existsByPatientIdAndStatus(patientId, PlanStatus.ACTIVO)) {
+        if (habitPlanRepository.existsByEstudianteIdAndStatus(estudianteId, PlanStatus.ACTIVO)) {
             throw new BusinessException(
-                    "El paciente ya tiene un plan activo. Desactiva el plan actual antes de crear uno nuevo.");
+                    "El estudiante ya tiene un plan activo. Desactiva el plan actual antes de crear uno nuevo.");
         }
 
         if (request.getEndDate() != null && request.getEndDate().isBefore(request.getStartDate())) {
@@ -52,7 +52,7 @@ public class HabitPlanService {
         }
 
         HabitPlan plan = new HabitPlan();
-        plan.setPatient(patient);
+        plan.setEstudiante(estudiante);
         plan.setName(request.getName());
         plan.setDescription(request.getDescription());
         plan.setStartDate(request.getStartDate());
@@ -75,16 +75,16 @@ public class HabitPlanService {
     }
 
     @Transactional(readOnly = true)
-    public List<HabitPlan> getPlansByPatient(Long patientId) {
-        patientRepository.findById(patientId).orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
-        return habitPlanRepository.findByPatientId(patientId);
+    public List<HabitPlan> getPlansByEstudiante(Long estudianteId) {
+        estudianteRepository.findById(estudianteId).orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
+        return habitPlanRepository.findByEstudianteId(estudianteId);
     }
 
     @Transactional(readOnly = true)
-    public HabitPlan getActivePlan(Long patientId) {
-        patientRepository.findById(patientId).orElseThrow(() -> new ResourceNotFoundException("Paciente", patientId));
-        return habitPlanRepository.findByPatientIdAndStatus(patientId, PlanStatus.ACTIVO)
-                .orElseThrow(() -> new ResourceNotFoundException("El paciente no tiene un plan activo"));
+    public HabitPlan getActivePlan(Long estudianteId) {
+        estudianteRepository.findById(estudianteId).orElseThrow(() -> new ResourceNotFoundException("Estudiante", estudianteId));
+        return habitPlanRepository.findByEstudianteIdAndStatus(estudianteId, PlanStatus.ACTIVO)
+                .orElseThrow(() -> new ResourceNotFoundException("El estudiante no tiene un plan activo"));
     }
 
     @Transactional(readOnly = true)
@@ -133,14 +133,14 @@ public class HabitPlanService {
     }
 
     @Transactional(readOnly = true)
-    public List<HabitTask> getTasksForToday(Long patientId) {
+    public List<HabitTask> getTasksForToday(Long estudianteId) {
         String todayRaw = LocalDate.now()
                 .getDayOfWeek()
                 .getDisplayName(TextStyle.FULL, new Locale("es", "CO"));
         final String today = todayRaw.substring(0, 1).toUpperCase() + todayRaw.substring(1);
 
         Optional<HabitPlan> activePlan = habitPlanRepository
-                .findByPatientIdAndStatus(patientId, PlanStatus.ACTIVO);
+                .findByEstudianteIdAndStatus(estudianteId, PlanStatus.ACTIVO);
 
         if (activePlan.isEmpty()) {
             return new ArrayList<>();

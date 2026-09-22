@@ -1,7 +1,7 @@
-package com.wellness.backend.service;
+package com.compa.service;
 
-import com.wellness.backend.model.RuleTemplate;
-import com.wellness.backend.repository.RuleTemplateRepository;
+import com.compa.model.RuleTemplate;
+import com.compa.repository.RuleTemplateRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,7 @@
-package com.wellness.backend.model;
+package com.compa.model;
 
-import com.wellness.backend.enums.ProfessionalStatus;
-import com.wellness.backend.enums.Role;
+import com.compa.enums.OrientadorStatus;
+import com.compa.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,18 +9,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.wellness.backend.enums.Role;
+import com.compa.enums.Role;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "professionals")
+@Table(name = "orientadores")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Professional
-{
+public class Orientador {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -44,7 +43,7 @@ public class Professional
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private ProfessionalStatus status = ProfessionalStatus.PENDING;
+    private OrientadorStatus status = OrientadorStatus.PENDING;
 
     @Column(name = "verification_token")
     private String verificationToken;
@@ -59,12 +58,12 @@ public class Professional
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         if (this.status == null) {
-            this.status = ProfessionalStatus.PENDING;
+            this.status = OrientadorStatus.PENDING;
         }
     }
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private Role role = Role.PROFESSIONAL;
+    private Role role = Role.ORIENTADOR;
 }

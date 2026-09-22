@@ -1,9 +1,9 @@
-package com.wellness.backend.dto.response;
+package com.compa.dto.response;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.wellness.backend.enums.RiskLevel;
+import com.compa.enums.RiskLevel;
 
 public class RiskLevelHistoryResponse {
     private Long id;
