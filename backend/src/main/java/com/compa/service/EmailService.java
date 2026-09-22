@@ -44,7 +44,7 @@ public class EmailService {
 
     @Async
     public void sendEstudianteCredentials(String toEmail, String name,
-                                       String tempPassword, String activationToken) {
+                                          String tempPassword, String activationToken) {
         String activationLink = frontendUrl + "/activate?token=" + activationToken;
         String body =
                 "Hola " + name + ",\n\n" +
@@ -71,6 +71,29 @@ public class EmailService {
                         "Te recomendamos revisar su estado lo antes posible en la plataforma.\n\n" +
                         "Equipo COMPA";
         send(toEmail, orientadorName, "⚠️ Alerta de riesgo alto — " + estudianteName, body);
+    }
+
+    @Async
+    public void sendTaskReminderEmail(String toEmail, String name, String title,
+                                      String message, String actionToken) {
+        String actionUrl = frontendUrl + "/notifications/complete-task?token=" + actionToken;
+        String body =
+                "Hola " + name + ",\n\n" +
+                        message + "\n\n" +
+                        "Puedes marcarla como cumplida directamente desde aquí, sin abrir la app:\n" +
+                        actionUrl + "\n\n" +
+                        "Este enlace vence en 48 horas.\n\n" +
+                        "Equipo COMPA";
+        send(toEmail, name, title, body);
+    }
+
+    @Async
+    public void sendNotificationEmail(String toEmail, String name, String title, String message) {
+        String body =
+                "Hola " + name + ",\n\n" +
+                        message + "\n\n" +
+                        "Equipo COMPA";
+        send(toEmail, name, title, body);
     }
 
     private void send(String toEmail, String toName, String subject, String body) {
