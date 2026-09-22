@@ -89,6 +89,9 @@ public class Estudiante {
     @Column(name = "role")
     private Role role = Role.ESTUDIANTE;
 
+    @Column(name = "reminder_time")
+    private java.time.LocalTime reminderTime = java.time.LocalTime.of(20, 0); // 8:00 p.m. por defecto
+
     // --- Relación con orientador ---
 
     @ManyToOne(fetch = FetchType.LAZY)
